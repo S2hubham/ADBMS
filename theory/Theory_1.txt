@@ -1,0 +1,199 @@
+-use command
+
+>use database_name
+(creates new db or return name if it already exists)
+
+-db.dropDatabase()
+to delete database
+
+-db.createCollection("name_of_collection", options)
+to create collection
+options : 
+	1)capped : created fixed size collection that automatically overwrites its oldest entries when it reaches its maximum size.If you specify true, you need to specify size parameter 	also.
+	2)autoIndexID : If true, automatically create index on _id fields Default value is false.
+
+-db.collection_name.drop()
+to delete collection
+
+-db.collection_name.insert(document)
+To insert data into MongoDB collection, you need to use MongoDB's insert() or save() method.
+(NOTE : If the document has no _id, it will insert a new document.
+       If you include an _id (e.g., _id: ObjectId("someid")), and a document with that _id already exists, it will update the existing document.)
+
+-db.students.insertMany([
+  { first_name: "Sachin", last_name: "Tendulkar" },
+  { first_name: "Virender", last_name: "Sehwag" },
+  { first_name: "Shikhar", last_name: "Dhawan" },
+  { first_name: "Mohammed", last_name: "Shami" },
+  { first_name: "Shreyas", last_name: "Iyer" }
+]);
+
+for inserting in bulk we can use insertmany(), we have to pass array but here we can also we bulk.insert()
+
+-ID 
+_id is 12 bytes hexadecimal number unique for every document in a collection. 12 bytes are divided as follows:
+_id:ObjectId(4 bytes timestamp,3 bytes machine id,2 bytes process id,3 bytes incrementer)
+
+
+-db.students.find().sort({'first_name':1}).limit(5)
+to find documents in collection specified
+
+-schema validation
+Schema Validation is like setting rules for how your document must look in our database.Schema validation in  MongoDB  is a feature that allows us to set the structure for the data in the documents of a collection.Schema validation in MongoDB provides a structured approach to define and enforce rules for document structures within collections.
+
+db.createCollection('shubh', {
+validator: {
+  $jsonSchema: {
+    bsonType: "object",
+    required: ["first_name", "last_name"],
+    properties: {
+      first_name: {
+        bsonType: "string",
+        description: "must be a string and is required"
+      },
+      last_name: {
+        bsonType: "string",
+        description: "must be a string and is required"
+      }
+    }
+  }
+}
+});
+
+
+-db.demo.update( {'title': 'MongoDB Overview'}, {$set: {'title': 'MongoDB'}})
+-db.students.updateMany( {'first_name': 'Virender'}, {$set: {'first_name': 'Virendra'}})
+to update documents
+
+-db.collection__name.remove({criteria})
+(NOTE:  Collection.remove() is deprecated. Use deleteOne, deleteMany, findOneAndDelete, or bulkWrite.)
+
+
+
+-Query conditionals
+-$lt, $lte, $gt, $gte, $ne
+
+
+-OR operator
+OR Queries Basics:
+
+Use $in for matching multiple values for a single key.
+Use $or for matching multiple values across different keys.
+$in Example:
+
+To find documents where ticket_no is 725, 542, or 390:
+
+db.users.find({ "ticket_no": { "$in": [725, 542, 390] } });
+Flexible: Can match different data types (e.g., user_id as number or string):
+
+db.users.find({ "user_id": { "$in": [12345, "abc"] } });
+
+$nin (Opposite of $in):
+Returns documents not matching any values in the array:
+
+db.users.find({ "ticket_no": { "$nin": [725, 542, 390] } });
+
+$or Example:
+Matches documents with ticket_no = 725 or winner = true:
+db.users.find({ "$or": [{ "ticket_no": 725 }, { "winner": true }] });
+
+Combine $or with other operators (e.g., $in):
+db.users.find({ "$or": [{ "ticket_no": { "$in": [725, 542, 390] } }, { "winner": true }] });
+
+Efficiency:
+$in: More efficient for single key matches.
+$or: More useful for combining conditions across multiple keys. Aim to match many documents with the first arguments for better performance.
+
+
+-db.users.find({ "id_num": { "$not": { "$mod": [5, 1] } } });
+not operator
+
+-db.users.find().limit(3)
+sets atmost 3docs not more than that
+
+-db.users.find().skip(3)
+This will skip the first three matching documents and return the rest of the matches. If there are less than three documents in your collection, it will not return any documents.
+
+-db.users.find().sort({ 'username': 1, 'age': -1 })
+Primary Sorting by username in Ascending Order (1):
+This means the documents will be sorted alphabetically based on the username field.
+Secondary Sorting by age in Descending Order (-1):
+For documents that have the same username value (or if it's already alphabetically sorted), the sorting will occur based on age in descending order.
+
+
+-Querying arrays
+while working with arrays we can see it as single key:value pair 
+db.demo.find({'fruit': 'cherry'})
+if we want to match more than one value we can use $all operator
+db.demo.find({'fruit': {'$all': ['apple', 'banana']}}) here it have to match both values then only returns document
+
+
+-db.demo.find({ "fruit": { "$size": 3 } })
+Use $size for exact matches of array size.
+$size cannot be combined directly with other comparison operators like $gt (greater than). Therefore, you cannot directly query for a range of array sizes.
+
+-db.food.update({ "_id": 1 }, { "$push": { "fruit": "strawberry" }, "$inc": { "size": 1 } })
+when a new value is added to the fruit we should increase the size also
+
+-slice
+(NOTE: Use $slice to control how many elements of an array field are returned within a document.)
+First N Elements:
+db.demo.find({}, { "fruits": { "$slice": 10 } })
+This query returns the first 10 elements in the comments array.
+Last N Elements:
+dbdemo.find({}, { "fruits": { "$slice": -10 } })
+This query returns the last 10 elements in the comments array.
+Subset in the Middle:
+db.demo.find({}, { "fruits": { "$slice": [23, 10] } })
+This skips the first 23 elements and returns the next 10 elements (24th to 34th). If there are fewer elements, it returns as many as available. 
+
+
+-REGEX
+You are not allowed to use $regex operator inside $in operator.
+• If you want to add a regular expression inside a comma-separated list of a query condition, then you have to use the $regex operator.
+• If you want to use x and s options then you have to use $regex operator expression with $options.
+• Starting from the latest version of MongoDB(i.e., 4.0.7) you are allowed to use $not operator with $regex operator expression.
+• For case-sensitive regular expression queries, if the index of the specified field is available, then MongoDB matches the regular expression to the values in the index. It is the easiest way to match rather than scanning all the collections For case-insensitive regular expression queries, they do not utilize index effectively.
+• If you want to use Perl compatible regular expressions support regular expressions that are not supported in JavaScript, then you must use $regex operator.
+
+• Syntax
+• { field: { $regex: /pattern/, $options: options } }
+• { field: { $regex: /pattern/, $options: options } }
+• $options:
+• In MongoDB, the following options are available for use with regular expression:
+• i: To match both lower case and upper case pattern in the string.
+• m: To include ^ and $ in the pattern in the match i.e. to specifically search for ^ and $ inside the string. Without this option, these anchors match at the beginning or end of the string.
+• x: To ignore all white space characters in the $regex pattern.
+• s: To allow the dot character “.” to match all characters including newline characters.
+
+
+-where operator
+The $where operator allows you to use JavaScript expressions to filter documents.
+This approach can be less efficient than other methods and should be used with caution, especially on large datasets.
+db.collection.find({ $where: function() { return this.name.includes(&quot;abc&quot;); }})
+
+
+
+
+
+-------------------------------------------------
+dummy data : 
+db.users.insertMany([
+  { age: 40, username: "jackson_lee", registered: true, ticketno: 634 },
+  { age: 19, username: "olivia_williams", registered: false, ticketno: 47 },
+  { age: 23, username: "michael_brown", registered: true, ticketno: 845 },
+  { age: 27, username: "lisa_white", registered: false, ticketno: 909 },
+  { age: 33, username: "david_green", registered: true, ticketno: 10 },
+  { age: 21, username: "emily_clark", registered: true, ticketno: 11 },
+  { age: 29, username: "ethan_taylor", registered: false, ticketno: 512 },
+  { age: 38, username: "sophie_hall", registered: true, ticketno: 134 },
+  { age: 24, username: "chris_martin", registered: true, ticketno: 457 },
+  { age: 31, username: "george_harris", registered: false, ticketno: 15 }
+]);
+
+
+([
+	{"_id": 1, "fruit": ["apple", "banana", "peach"]},
+	{"_id": 2, "fruit": ["apple", "kumquat", "orange"]},
+	{"_id": 3, "fruit": ["cherry", "banana", "apple"]}
+])

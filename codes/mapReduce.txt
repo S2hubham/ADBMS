@@ -1,0 +1,30 @@
+db.students.mapReduce(
+    function() {
+        emit(this.subject, this.grade); 
+    },
+    function(key, values) {
+        return {
+            highestGrade = Math.max(...values.map(v => v.max)),
+            lowest: Math.min.(...values.map(v => v.min))
+        }; 
+    },
+    {
+        out: "subject_min_max_grades" 
+    }
+)
+
+
+ db.students.mapReduce(
+... function() {
+... emit(this.student_id, this.grade);
+... },
+... function(student_id, grades) {
+... var total = Array.sum(grades);
+... var count = grades.length;
+... var avg = total / count;
+... return { average: avg };
+... },
+... {
+... out: "student_averages"
+... }
+... )

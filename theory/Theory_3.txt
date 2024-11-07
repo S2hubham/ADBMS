@@ -1,0 +1,107 @@
+Aggregation pipeline in MongoDB:
+
+1. Aggregation Pipeline Overview:
+   - The aggregation pipeline processes documents through multiple stages, transforming and combining data similar to Unix pipes.
+   - Each stage in the pipeline performs an operation on input documents and passes the result to the next stage.
+
+2. Basic Aggregation with `$group`:
+   - `$group` is analogous to SQL's `GROUP BY`.
+   - When using `$group`, you specify an `_id` field that indicates what field you are grouping by.
+     - Example: 
+       
+       db.student.aggregate({ $group: { _id: '$gender', total: { $sum: 1 } } })
+       
+   - Here, documents are grouped by the `gender` field, and the `total` field counts the number of documents for each gender.
+
+3. Using `$` for Field Reference:
+   - The `$` symbol before a field name means that the value of this field from the input document will be substituted.
+   - Example: `'_id': '$gender'` means `_id` will take the value of the `gender` field from each document.
+
+4. Other Pipeline Operators:
+   - `$match`: Filters documents to allow aggregation only on a matching subset (similar to `find`).
+   - Example: 
+     
+     db.student.aggregate({ $match: { weight: { $lt: 600 } } })
+     
+   - `$sort`: Sorts the documents based on specified fields.
+   - `$skip` and `$limit`: Skip a number of documents and limit the number of documents passed through the pipeline.
+
+5. Combining Operators in a Pipeline:
+   - You can combine multiple operators in a pipeline for complex transformations.
+   - Example:
+     
+     db.student.aggregate(
+       { $match: { weight: { $lt: 600 } } },
+       { $group: { _id: '$gender', total: { $sum: 1 }, avgVamp: { $avg: '$vampires' } } },
+       { $sort: { avgVamp: -1 } }
+     )
+     
+   - This example filters documents by weight, groups them by gender, calculates the total count and average value for the `vampires` field, and then sorts the results by `avgVamp` in descending order.
+
+6. Common Aggregation Expressions:
+   - `$sum`: Calculates the sum of numeric values.
+   - `$avg`: Calculates the average of numeric values.
+   - `$min` and `$max`: Find the minimum and maximum values.
+   - `$push`: Adds values to an array.
+   - `$first` and `$last`: Return the first or last value for a group.
+
+
+
+-Aggreagtion query
+db.student.aggregate([
+  { $unwind: "$likes" },
+  {
+    $group: {
+      _id: "$likes",  // Group by the liked item
+      total: { $sum: 1 },  // Count the total number of occurrences
+      students: { $addToSet: "$name" }  // Collect the names of students who like the item
+    }
+  },
+  { $sort: { total: -1 } },  // Sort by the total count in descending order
+  { $limit: 1 }  // Limit the result to the top 1 liked item
+])
+Explanation
+$unwind: "$likes": Flattens the likes array so each like becomes a separate document entry.
+$group: { _id: "$likes", ... }: Groups documents by the value of likes.
+$addToSet: "$name": Collects unique student names who like the item.
+$sort: { total: -1 }: Sorts the groups by total in descending order.
+$limit: 1: Limits the output to a single document with the highest count.
+Result
+The output will tell you which food item is liked by the most students and provide a list of their names.
+
+[
+  { _id: 'Pizza', total: 3, students: [ 'Alice', 'Bob', 'David' ] },
+  { _id: 'Sushi', total: 2, students: [ 'Bob', 'Charlie' ] },
+  { _id: 'Pasta', total: 2, students: [ 'Alice', 'Charlie' ] },
+  { _id: 'Burger', total: 2, students: [ 'Alice', 'David' ] },
+  { _id: 'pizza', total: 1, students: [ 'shubh' ] },
+  { _id: 'apple', total: 1, students: [ 'shubh' ] },
+  { _id: 'cheese', total: 1, students: [ 'shubh' ] },
+  { _id: 'mango', total: 1, students: [ 'shubh' ] }
+]
+
+
+-$project
+Inclusion: Fields are included by setting them to 1 or true.
+Exclusion: The _id field can be excluded by setting it to 0 or false.
+Nested Fields: You can include fields from embedded documents using dot notation.
+New Fields: You can create new fields or modify existing ones using expressions.
+
+-Group
+$addToSet -> Returns an array of unique expression values for each group. Order of the array elements is undefined.
+$avg -> Returns an average for each group. Ignores non-numeric values.
+$first -> Returns a value from the first document for each group. Order is only defined if the documents are in a defined order.
+$last -> Returns a value from the last document for each group. Order is only defined if the documents are in a defined order.
+$max -> Returns the highest expression value for each group.
+$min -> Returns the lowest expression value for each group.
+$push -> Returns an array of expression values for each group.
+$sum -> Returns a sum for each group. Ignores non-numeric values.
+
+
+NOTE : 
+The $group stage has a limit of 100 megabytes of RAM.By default, if the stage exceeds this limit, $group will produce an error.
+
+
+
+
+

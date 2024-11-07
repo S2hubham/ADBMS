@@ -1,0 +1,1082 @@
+assign1> use Assign1
+switched to db Assign1
+Assign1> db
+Assign1
+Assign1> show dbs
+Twitter     396.00 KiB
+admin        40.00 KiB
+bookstore    40.00 KiB
+config      108.00 KiB
+local        88.00 KiB
+mapReduce   120.00 KiB
+recipe      380.00 KiB
+team404     184.00 KiB
+wanderlust  428.00 KiB
+Assign1> db.movie.insert({'name' : 'abc'})
+DeprecationWarning: Collection.insert() is deprecated. Use insertOne, insertMany, or bulkWrite.
+{
+  acknowledged: true,
+  insertedIds: { '0': ObjectId('672c438dc48083baef117b7b') }
+}
+Assign1> show dbs
+Assign1      40.00 KiB
+Twitter     396.00 KiB
+admin        40.00 KiB
+bookstore    40.00 KiB
+config      108.00 KiB
+local        88.00 KiB
+mapReduce   120.00 KiB
+recipe      380.00 KiB
+team404     184.00 KiB
+wanderlust  428.00 KiB
+Assign1> show collections
+movie
+Assign1> db.create
+db.createUser                 db.createCollection           db.createEncryptedCollection  db.createView
+db.createRole
+
+Assign1> db.createCollection
+db.createCollection
+
+Assign1> db.createCollection('demo', {autoIndexID : true})
+MongoServerError[Location40415]: BSON field 'create.autoIndexID' is an unknown field.
+Assign1> db.createCollection('demo')
+{ ok: 1 }
+Assign1> show collections
+demo
+movie
+Assign1> db.movie.drop()
+true
+Assign1> db.demo.insert({
+... title:'MongoDB Overview',
+... description:'MongoDB is no sql database',
+... tags:['mongodb','database','NoOSQL'],
+... likes:100
+... })
+{
+  acknowledged: true,
+  insertedIds: { '0': ObjectId('672c4992c48083baef117b7c') }
+}
+Assign1> db.demo.save({
+...   title: 'MongoDB Overview',
+...   description: 'MongoDB is no sql database',
+...   tags: ['mongodb', 'database', 'NoSQL'],
+...   likes: 100
+... });
+TypeError: db.demo.save is not a function
+Assign1> var bulk = db.students.initializeUnorderedBulkOp();
+
+Assign1> bulk.insert( { first_name: &quot;Sachin&quot;, last_name: &quot;Tendulkar&quot; } );
+Uncaught:
+SyntaxError: Unexpected token (1:27)
+
+> 1 | bulk.insert( { first_name: &quot;Sachin&quot;, last_name: &quot;Tendulkar&quot; } );
+    |                            ^
+  2 |
+
+Assign1> bulk.insert( { first_name: &quot;Virender&quot;, last_name: &quot;Sehwag&quot; } );
+Uncaught:
+SyntaxError: Unexpected token (1:27)
+
+> 1 | bulk.insert( { first_name: &quot;Virender&quot;, last_name: &quot;Sehwag&quot; } );
+    |                            ^
+  2 |
+
+Assign1> bulk.insert( { first_name: &quot;Shikhar&quot;, last_name: &quot;Dhawan&quot; } );
+Uncaught:
+SyntaxError: Unexpected token (1:27)
+
+> 1 | bulk.insert( { first_name: &quot;Shikhar&quot;, last_name: &quot;Dhawan&quot; } );
+    |                            ^
+  2 |
+
+Assign1> bulk.insert( { first_name: &quot;Mohammed&quot;, last_name: &quot;Shami&quot; } );
+Uncaught:
+SyntaxError: Unexpected token (1:27)
+
+> 1 | bulk.insert( { first_name: &quot;Mohammed&quot;, last_name: &quot;Shami&quot; } );
+    |                            ^
+  2 |
+
+Assign1> bulk.insert( { first_name: &quot;Shreyas&quot;, last_name: &quot;Iyer&quot; } );
+Uncaught:
+SyntaxError: Unexpected token (1:27)
+
+> 1 | bulk.insert( { first_name: &quot;Shreyas&quot;, last_name: &quot;Iyer&quot; } );
+    |                            ^
+  2 |
+
+Assign1> var bulk = db.students.initializeUnorderedBulkOp();
+
+Assign1> bulk.insert({ first_name: "Sachin", last_name: "Tendulkar" });
+{ nInsertOps: 1, nUpdateOps: 0, nRemoveOps: 0, nBatches: 1 }
+Assign1> bulk.insert({ first_name: "Virender", last_name: "Sehwag" });
+{ nInsertOps: 2, nUpdateOps: 0, nRemoveOps: 0, nBatches: 1 }
+Assign1> bulk.insert({ first_name: "Shikhar", last_name: "Dhawan" });
+{ nInsertOps: 3, nUpdateOps: 0, nRemoveOps: 0, nBatches: 1 }
+Assign1> bulk.insert({ first_name: "Mohammed", last_name: "Shami" });
+{ nInsertOps: 4, nUpdateOps: 0, nRemoveOps: 0, nBatches: 1 }
+Assign1> bulk.insert({ first_name: "Shreyas", last_name: "Iyer" });
+{ nInsertOps: 5, nUpdateOps: 0, nRemoveOps: 0, nBatches: 1 }
+Assign1> bulk.execute();
+{
+  acknowledged: true,
+  insertedCount: 5,
+  insertedIds: {
+    '0': ObjectId('672c4c2fc48083baef117b7d'),
+    '1': ObjectId('672c4c2fc48083baef117b7e'),
+    '2': ObjectId('672c4c2fc48083baef117b7f'),
+    '3': ObjectId('672c4c2fc48083baef117b80'),
+    '4': ObjectId('672c4c2fc48083baef117b81')
+  },
+  matchedCount: 0,
+  modifiedCount: 0,
+  deletedCount: 0,
+  upsertedCount: 0,
+  upsertedIds: {}
+}
+Assign1> db.students.insertMany([
+...   { first_name: "Sachin", last_name: "Tendulkar" },
+...   { first_name: "Virender", last_name: "Sehwag" },
+...   { first_name: "Shikhar", last_name: "Dhawan" },
+...   { first_name: "Mohammed", last_name: "Shami" },
+...   { first_name: "Shreyas", last_name: "Iyer" }
+... ]);
+{
+  acknowledged: true,
+  insertedIds: {
+    '0': ObjectId('672c4c6ec48083baef117b82'),
+    '1': ObjectId('672c4c6ec48083baef117b83'),
+    '2': ObjectId('672c4c6ec48083baef117b84'),
+    '3': ObjectId('672c4c6ec48083baef117b85'),
+    '4': ObjectId('672c4c6ec48083baef117b86')
+  }
+}
+Assign1> db.students.find()
+[
+  {
+    _id: ObjectId('672c4c2fc48083baef117b7d'),
+    first_name: 'Sachin',
+    last_name: 'Tendulkar'
+  },
+  {
+    _id: ObjectId('672c4c2fc48083baef117b7e'),
+    first_name: 'Virender',
+    last_name: 'Sehwag'
+  },
+  {
+    _id: ObjectId('672c4c2fc48083baef117b7f'),
+    first_name: 'Shikhar',
+    last_name: 'Dhawan'
+  },
+  {
+    _id: ObjectId('672c4c2fc48083baef117b80'),
+    first_name: 'Mohammed',
+    last_name: 'Shami'
+  },
+  {
+    _id: ObjectId('672c4c2fc48083baef117b81'),
+    first_name: 'Shreyas',
+    last_name: 'Iyer'
+  },
+  {
+    _id: ObjectId('672c4c6ec48083baef117b82'),
+    first_name: 'Sachin',
+    last_name: 'Tendulkar'
+  },
+  {
+    _id: ObjectId('672c4c6ec48083baef117b83'),
+    first_name: 'Virender',
+    last_name: 'Sehwag'
+  },
+  {
+    _id: ObjectId('672c4c6ec48083baef117b84'),
+    first_name: 'Shikhar',
+    last_name: 'Dhawan'
+  },
+  {
+    _id: ObjectId('672c4c6ec48083baef117b85'),
+    first_name: 'Mohammed',
+    last_name: 'Shami'
+  },
+  {
+    _id: ObjectId('672c4c6ec48083baef117b86'),
+    first_name: 'Shreyas',
+    last_name: 'Iyer'
+  }
+]
+Assign1> db.students.find().sort({'id':-1}).limit(5).pretty()
+[
+  {
+    _id: ObjectId('672c4c2fc48083baef117b80'),
+    first_name: 'Mohammed',
+    last_name: 'Shami'
+  },
+  {
+    _id: ObjectId('672c4c2fc48083baef117b81'),
+    first_name: 'Shreyas',
+    last_name: 'Iyer'
+  },
+  {
+    _id: ObjectId('672c4c2fc48083baef117b7e'),
+    first_name: 'Virender',
+    last_name: 'Sehwag'
+  },
+  {
+    _id: ObjectId('672c4c2fc48083baef117b7d'),
+    first_name: 'Sachin',
+    last_name: 'Tendulkar'
+  },
+  {
+    _id: ObjectId('672c4c2fc48083baef117b7f'),
+    first_name: 'Shikhar',
+    last_name: 'Dhawan'
+  }
+]
+Assign1> db.students.find().sort({'first_name':1}).limit(5).pretty()
+[
+  {
+    _id: ObjectId('672c4c6ec48083baef117b85'),
+    first_name: 'Mohammed',
+    last_name: 'Shami'
+  },
+  {
+    _id: ObjectId('672c4c2fc48083baef117b80'),
+    first_name: 'Mohammed',
+    last_name: 'Shami'
+  },
+  {
+    _id: ObjectId('672c4c2fc48083baef117b7d'),
+    first_name: 'Sachin',
+    last_name: 'Tendulkar'
+  },
+  {
+    _id: ObjectId('672c4c6ec48083baef117b82'),
+    first_name: 'Sachin',
+    last_name: 'Tendulkar'
+  },
+  {
+    _id: ObjectId('672c4c6ec48083baef117b84'),
+    first_name: 'Shikhar',
+    last_name: 'Dhawan'
+  }
+]
+Assign1> db.students.find().sort({'first_name':1}).limit(5)
+[
+  {
+    _id: ObjectId('672c4c6ec48083baef117b85'),
+    first_name: 'Mohammed',
+    last_name: 'Shami'
+  },
+  {
+    _id: ObjectId('672c4c2fc48083baef117b80'),
+    first_name: 'Mohammed',
+    last_name: 'Shami'
+  },
+  {
+    _id: ObjectId('672c4c2fc48083baef117b7d'),
+    first_name: 'Sachin',
+    last_name: 'Tendulkar'
+  },
+  {
+    _id: ObjectId('672c4c6ec48083baef117b82'),
+    first_name: 'Sachin',
+    last_name: 'Tendulkar'
+  },
+  {
+    _id: ObjectId('672c4c6ec48083baef117b84'),
+    first_name: 'Shikhar',
+    last_name: 'Dhawan'
+  }
+]
+Assign1> db.createCollection('shubh',
+... validator : {
+Uncaught:
+Assign1> db.createCollection('shubh', {
+...   validator: {
+...     $jsonSchema: {
+...       bsonType: "object",
+...       required: ["first_name", "last_name"],
+...       properties: {
+...         first_name: {
+...           bsonType: "string",
+...           description: "must be a string and is required"
+...         },
+...         last_name: {
+...           bsonType: "string",
+...           description: "must be a string and is required"
+...         }
+...       }
+...     }
+...   }
+... });
+{ ok: 1 }
+Assign1> db.shubh.insertOne({
+... title:'hiiiiii'
+... })
+Uncaught:
+MongoServerError: Document failed validation
+Additional information: {
+  failingDocumentId: ObjectId('672c5506c48083baef117b87'),
+  details: {
+    operatorName: '$jsonSchema',
+    schemaRulesNotSatisfied: [
+Assign1> db.createCollection('shubh', {
+...   validator: {
+...     $jsonSchema: {
+...       bsonType: "object",
+...       required: ["id", "name"],
+...       properties: {
+...         id: {
+...           bsonType: "int",
+...           description: "must be a int and is required"
+...         },
+...         name: {
+...           bsonType: "string",
+...           description: "must be a string and is required"
+...         }
+...       }
+...     }
+...   }
+... });
+{ ok: 1 }
+Assign1> db.shubh.insertone({
+... id: 2,
+... name: 'shubh'
+... })
+TypeError: db.shubh.insertone is not a function
+Assign1> db.shubh.insertOne({ id: 2, name: 'shubh' })
+{
+  acknowledged: true,
+  insertedId: ObjectId('672c565ac48083baef117b8a')
+}
+Assign1> db.shubh.insertOne({ id: 2ds, name: 'shubh' })
+Uncaught:
+SyntaxError: Identifier directly after number. (1:26)                                                                                                                                                                                                                                                                   > 1 | db.shubh.insertOne({ id: 2ds, name: 'shubh' })
+    |                           ^
+  2 |                                                                                                                                                                                                                                                                                                                   Assign1> db.shubh.insertOne({ id: "2ds", name: 'shubh' })
+Uncaught:
+MongoServerError: Document failed validation
+Additional information: {
+  failingDocumentId: ObjectId('672c5694c48083baef117b8b'),
+  details: {
+    operatorName: '$jsonSchema',
+    schemaRulesNotSatisfied: [
+      {
+        operatorName: 'properties',
+        propertiesNotSatisfied: [
+          {
+            propertyName: 'id',
+            description: 'must be a int and is required',
+            details: [
+              {
+                operatorName: 'bsonType',
+                specifiedAs: { bsonType: 'int' },
+                reason: 'type did not match',
+                consideredValue: '2ds',
+                consideredType: 'string'
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}
+Assign1> db.shubh.drop()
+true
+Assign1> show collections
+demo
+students
+Assign1> db.demo.update(
+... {'title': 'MongoDB Overview'},
+... {$set: {'title': 'MongoDB'}}
+... })
+Uncaught:
+SyntaxError: Unexpected token, expected "," (4:0)
+
+  2 | {'title': 'MongoDB Overview'},
+  3 | {$set: {'title': 'MongoDB'}}
+> 4 | })
+    | ^
+  5 |
+
+Assign1> db.demo.update( {'title': 'MongoDB Overview'}, {$set: {'title': 'MongoDB'}})
+DeprecationWarning: Collection.update() is deprecated. Use updateOne, updateMany, or bulkWrite.
+{
+  acknowledged: true,
+  insertedId: null,
+  matchedCount: 1,
+  modifiedCount: 1,
+  upsertedCount: 0
+}
+Assign1> db.demo.find()
+[
+  {
+    _id: ObjectId('672c4992c48083baef117b7c'),
+    title: 'MongoDB',
+    description: 'MongoDB is no sql database',
+    tags: [ 'mongodb', 'database', 'NoOSQL' ],
+    likes: 100
+  }
+]
+Assign1> db.students.updateMany( {'first_name': 'Virender'}, {$set: {'first_name': 'Virendra'}})
+Assign1> db.students.find({'first_name': 'Virender'})
+[
+  {
+    _id: ObjectId('672c4c2fc48083baef117b7e'),
+    first_name: 'Virender',
+    last_name: 'Sehwag'
+  },
+  {
+    _id: ObjectId('672c4c6ec48083baef117b83'),
+    first_name: 'Virender',
+    last_name: 'Sehwag'
+  }
+]
+Assign1>  db.students.updateMany( {'first_name': 'Virender'}, {$set: {'first_name': 'Virendra'}})
+{
+  acknowledged: true,
+  insertedId: null,
+  matchedCount: 2,
+  modifiedCount: 2,
+  upsertedCount: 0
+}
+Assign1> db.students.find({'first_name': 'Virendra'})
+[
+  {
+    _id: ObjectId('672c4c2fc48083baef117b7e'),
+    first_name: 'Virendra',
+    last_name: 'Sehwag'
+  },
+  {
+    _id: ObjectId('672c4c6ec48083baef117b83'),
+    first_name: 'Virendra',
+    last_name: 'Sehwag'
+  }
+]
+Assign1> db.students.remove({'first_name': 'Virendra'})
+DeprecationWarning: Collection.remove() is deprecated. Use deleteOne, deleteMany, findOneAndDelete, or bulkWrite.
+{ acknowledged: true, deletedCount: 2 }
+Assign1> db.students.deleteOne({'first_name': 'Virendra'})
+{ acknowledged: true, deletedCount: 0 }
+Assign1> db.users.insertMany([
+...   { age: 40, username: "jackson_lee", registered: true, ticketno: "TICKET006" },
+...   { age: 19, username: "olivia_williams", registered: false, ticketno: "TICKET007" },
+...   { age: 23, username: "michael_brown", registered: true, ticketno: "TICKET008" },
+...   { age: 27, username: "lisa_white", registered: false, ticketno: "TICKET009" },
+...   { age: 33, username: "david_green", registered: true, ticketno: "TICKET010" },
+...   { age: 21, username: "emily_clark", registered: true, ticketno: "TICKET011" },
+...   { age: 29, username: "ethan_taylor", registered: false, ticketno: "TICKET012" },
+...   { age: 38, username: "sophie_hall", registered: true, ticketno: "TICKET013" },
+...   { age: 24, username: "chris_martin", registered: true, ticketno: "TICKET014" },
+...   { age: 31, username: "george_harris", registered: false, ticketno: "TICKET015" }
+... ]);
+{
+  acknowledged: true,
+  insertedIds: {
+    '0': ObjectId('672c59e3c48083baef117b8c'),
+    '1': ObjectId('672c59e3c48083baef117b8d'),
+    '2': ObjectId('672c59e3c48083baef117b8e'),
+    '3': ObjectId('672c59e3c48083baef117b8f'),
+    '4': ObjectId('672c59e3c48083baef117b90'),
+    '5': ObjectId('672c59e3c48083baef117b91'),
+    '6': ObjectId('672c59e3c48083baef117b92'),
+    '7': ObjectId('672c59e3c48083baef117b93'),
+    '8': ObjectId('672c59e3c48083baef117b94'),
+    '9': ObjectId('672c59e3c48083baef117b95')
+  }
+}
+Assign1> show collections
+demo
+students
+users
+Assign1> db.users.find(
+... {'age': {'$lt': 20}}
+... )
+[
+  {
+    _id: ObjectId('672c59e3c48083baef117b8d'),
+    age: 19,
+    username: 'olivia_williams',
+    registered: false,
+    ticketno: 'TICKET007'
+  }
+]
+Assign1> db.users.find( { 'age': { '$gt': 20, '$lt': 30} } )
+[
+  {
+    _id: ObjectId('672c59e3c48083baef117b8e'),
+    age: 23,
+    username: 'michael_brown',
+    registered: true,
+    ticketno: 'TICKET008'
+  },
+  {
+    _id: ObjectId('672c59e3c48083baef117b8f'),
+    age: 27,
+    username: 'lisa_white',
+    registered: false,
+    ticketno: 'TICKET009'
+  },
+  {
+    _id: ObjectId('672c59e3c48083baef117b91'),
+    age: 21,
+    username: 'emily_clark',
+    registered: true,
+    ticketno: 'TICKET011'
+  },
+  {
+    _id: ObjectId('672c59e3c48083baef117b92'),
+    age: 29,
+    username: 'ethan_taylor',
+    registered: false,
+    ticketno: 'TICKET012'
+  },
+  {
+    _id: ObjectId('672c59e3c48083baef117b94'),
+    age: 24,
+    username: 'chris_martin',
+    registered: true,
+    ticketno: 'TICKET014'
+  }
+]
+Assign1> db.users.find( { 'registered': {'$ne': 'false'} } )
+[
+  {
+    _id: ObjectId('672c59e3c48083baef117b8c'),
+    age: 40,
+    username: 'jackson_lee',
+    registered: true,
+    ticketno: 'TICKET006'
+  },
+  {
+    _id: ObjectId('672c59e3c48083baef117b8d'),
+    age: 19,
+    username: 'olivia_williams',
+    registered: false,
+    ticketno: 'TICKET007'
+  },
+  {
+    _id: ObjectId('672c59e3c48083baef117b8e'),
+    age: 23,
+    username: 'michael_brown',
+    registered: true,
+    ticketno: 'TICKET008'
+  },
+  {
+    _id: ObjectId('672c59e3c48083baef117b8f'),
+    age: 27,
+    username: 'lisa_white',
+    registered: false,
+    ticketno: 'TICKET009'
+  },
+  {
+    _id: ObjectId('672c59e3c48083baef117b90'),
+    age: 33,
+    username: 'david_green',
+    registered: true,
+    ticketno: 'TICKET010'
+  },
+  {
+    _id: ObjectId('672c59e3c48083baef117b91'),
+    age: 21,
+    username: 'emily_clark',
+    registered: true,
+    ticketno: 'TICKET011'
+  },
+  {
+    _id: ObjectId('672c59e3c48083baef117b92'),
+    age: 29,
+    username: 'ethan_taylor',
+    registered: false,
+    ticketno: 'TICKET012'
+  },
+  {
+    _id: ObjectId('672c59e3c48083baef117b93'),
+    age: 38,
+    username: 'sophie_hall',
+    registered: true,
+    ticketno: 'TICKET013'
+  },
+  {
+    _id: ObjectId('672c59e3c48083baef117b94'),
+    age: 24,
+    username: 'chris_martin',
+    registered: true,
+    ticketno: 'TICKET014'
+  },
+  {
+    _id: ObjectId('672c59e3c48083baef117b95'),
+    age: 31,
+    username: 'george_harris',
+    registered: false,
+    ticketno: 'TICKET015'
+  }
+]
+Assign1> db.users.find( { 'registered': {'$ne': false} } )
+[
+  {
+    _id: ObjectId('672c59e3c48083baef117b8c'),
+    age: 40,
+    username: 'jackson_lee',
+    registered: true,
+    ticketno: 'TICKET006'
+  },
+  {
+    _id: ObjectId('672c59e3c48083baef117b8e'),
+    age: 23,
+    username: 'michael_brown',
+    registered: true,
+    ticketno: 'TICKET008'
+  },
+  {
+    _id: ObjectId('672c59e3c48083baef117b90'),
+    age: 33,
+    username: 'david_green',
+    registered: true,
+    ticketno: 'TICKET010'
+  },
+  {
+    _id: ObjectId('672c59e3c48083baef117b91'),
+    age: 21,
+    username: 'emily_clark',
+    registered: true,
+    ticketno: 'TICKET011'
+  },
+  {
+    _id: ObjectId('672c59e3c48083baef117b93'),
+    age: 38,
+    username: 'sophie_hall',
+    registered: true,
+    ticketno: 'TICKET013'
+  },
+  {
+    _id: ObjectId('672c59e3c48083baef117b94'),
+    age: 24,
+    username: 'chris_martin',
+    registered: true,
+    ticketno: 'TICKET014'
+  }
+]
+Assign1> db.users.find(
+... {'age': {'$in':  [23, 33, 1]}}
+... )
+[
+  {
+    _id: ObjectId('672c59e3c48083baef117b8e'),
+    age: 23,
+    username: 'michael_brown',
+    registered: true,
+    ticketno: 'TICKET008'
+  },
+  {
+    _id: ObjectId('672c59e3c48083baef117b90'),
+    age: 33,
+    username: 'david_green',
+    registered: true,
+    ticketno: 'TICKET010'
+  }
+]
+Assign1> db.users.find(
+... {'$or': [{'age': {'$in':  [23, 33, 1]}}, {'registered': true}]}
+... )
+[
+  {
+    _id: ObjectId('672c59e3c48083baef117b8c'),
+    age: 40,
+    username: 'jackson_lee',
+    registered: true,
+    ticketno: 'TICKET006'
+  },
+  {
+    _id: ObjectId('672c59e3c48083baef117b8e'),
+    age: 23,
+    username: 'michael_brown',
+    registered: true,
+    ticketno: 'TICKET008'
+  },
+  {
+    _id: ObjectId('672c59e3c48083baef117b90'),
+    age: 33,
+    username: 'david_green',
+    registered: true,
+    ticketno: 'TICKET010'
+  },
+  {
+    _id: ObjectId('672c59e3c48083baef117b91'),
+    age: 21,
+    username: 'emily_clark',
+    registered: true,
+    ticketno: 'TICKET011'
+  },
+  {
+    _id: ObjectId('672c59e3c48083baef117b93'),
+    age: 38,
+    username: 'sophie_hall',
+    registered: true,
+    ticketno: 'TICKET013'
+  },
+  {
+    _id: ObjectId('672c59e3c48083baef117b94'),
+    age: 24,
+    username: 'chris_martin',
+    registered: true,
+    ticketno: 'TICKET014'
+  }
+]
+Assign1> db.users.find({ "age": { "$not": { "$mod": [5, 1] } } })
+[
+  {
+    _id: ObjectId('672c59e3c48083baef117b8c'),
+    age: 40,
+    username: 'jackson_lee',
+    registered: true,
+    ticketno: 'TICKET006'
+  },
+  {
+    _id: ObjectId('672c59e3c48083baef117b8d'),
+    age: 19,
+    username: 'olivia_williams',
+    registered: false,
+    ticketno: 'TICKET007'
+  },
+  {
+    _id: ObjectId('672c59e3c48083baef117b8e'),
+    age: 23,
+    username: 'michael_brown',
+    registered: true,
+    ticketno: 'TICKET008'
+  },
+  {
+    _id: ObjectId('672c59e3c48083baef117b8f'),
+    age: 27,
+    username: 'lisa_white',
+    registered: false,
+    ticketno: 'TICKET009'
+  },
+  {
+    _id: ObjectId('672c59e3c48083baef117b90'),
+    age: 33,
+    username: 'david_green',
+    registered: true,
+    ticketno: 'TICKET010'
+  },
+  {
+    _id: ObjectId('672c59e3c48083baef117b92'),
+    age: 29,
+    username: 'ethan_taylor',
+    registered: false,
+    ticketno: 'TICKET012'
+  },
+  {
+    _id: ObjectId('672c59e3c48083baef117b93'),
+    age: 38,
+    username: 'sophie_hall',
+    registered: true,
+    ticketno: 'TICKET013'
+  },
+  {
+    _id: ObjectId('672c59e3c48083baef117b94'),
+    age: 24,
+    username: 'chris_martin',
+    registered: true,
+    ticketno: 'TICKET014'
+  }
+]
+Assign1> db.users.find().limit(3)
+[
+  {
+    _id: ObjectId('672c59e3c48083baef117b8c'),
+    age: 40,
+    username: 'jackson_lee',
+    registered: true,
+    ticketno: 'TICKET006'
+  },
+  {
+    _id: ObjectId('672c59e3c48083baef117b8d'),
+    age: 19,
+    username: 'olivia_williams',
+    registered: false,
+    ticketno: 'TICKET007'
+  },
+  {
+    _id: ObjectId('672c59e3c48083baef117b8e'),
+    age: 23,
+    username: 'michael_brown',
+    registered: true,
+    ticketno: 'TICKET008'
+  }
+]
+Assign1> db.users.find().limit(3)
+[
+  {
+    _id: ObjectId('672c59e3c48083baef117b8c'),
+    age: 40,
+    username: 'jackson_lee',
+    registered: true,
+    ticketno: 'TICKET006'
+  },
+  {
+    _id: ObjectId('672c59e3c48083baef117b8d'),
+    age: 19,
+    username: 'olivia_williams',
+    registered: false,
+    ticketno: 'TICKET007'
+  },
+  {
+    _id: ObjectId('672c59e3c48083baef117b8e'),
+    age: 23,
+    username: 'michael_brown',
+    registered: true,
+    ticketno: 'TICKET008'
+  }
+]
+Assign1>
+
+Assign1> db.users.find().skip(3)
+[
+  {
+    _id: ObjectId('672c59e3c48083baef117b8f'),
+    age: 27,
+    username: 'lisa_white',
+    registered: false,
+    ticketno: 'TICKET009'
+  },
+  {
+    _id: ObjectId('672c59e3c48083baef117b90'),
+    age: 33,
+    username: 'david_green',
+    registered: true,
+    ticketno: 'TICKET010'
+  },
+  {
+    _id: ObjectId('672c59e3c48083baef117b91'),
+    age: 21,
+    username: 'emily_clark',
+    registered: true,
+    ticketno: 'TICKET011'
+  },
+  {
+    _id: ObjectId('672c59e3c48083baef117b92'),
+    age: 29,
+    username: 'ethan_taylor',
+    registered: false,
+    ticketno: 'TICKET012'
+  },
+  {
+    _id: ObjectId('672c59e3c48083baef117b93'),
+    age: 38,
+    username: 'sophie_hall',
+    registered: true,
+    ticketno: 'TICKET013'
+  },
+  {
+    _id: ObjectId('672c59e3c48083baef117b94'),
+    age: 24,
+    username: 'chris_martin',
+    registered: true,
+    ticketno: 'TICKET014'
+  },
+  {
+    _id: ObjectId('672c59e3c48083baef117b95'),
+    age: 31,
+    username: 'george_harris',
+    registered: false,
+    ticketno: 'TICKET015'
+  }
+]
+Assign1> db.users.find().sort({'username': 1, 'age': -1})
+[
+  {
+    _id: ObjectId('672c59e3c48083baef117b94'),
+    age: 24,
+    username: 'chris_martin',
+    registered: true,
+    ticketno: 'TICKET014'
+  },
+  {
+    _id: ObjectId('672c59e3c48083baef117b90'),
+    age: 33,
+    username: 'david_green',
+    registered: true,
+    ticketno: 'TICKET010'
+  },
+  {
+    _id: ObjectId('672c59e3c48083baef117b91'),
+    age: 21,
+    username: 'emily_clark',
+    registered: true,
+    ticketno: 'TICKET011'
+  },
+  {
+    _id: ObjectId('672c59e3c48083baef117b92'),
+    age: 29,
+    username: 'ethan_taylor',
+    registered: false,
+    ticketno: 'TICKET012'
+  },
+  {
+    _id: ObjectId('672c59e3c48083baef117b95'),
+    age: 31,
+    username: 'george_harris',
+    registered: false,
+    ticketno: 'TICKET015'
+  },
+  {
+    _id: ObjectId('672c59e3c48083baef117b8c'),
+    age: 40,
+    username: 'jackson_lee',
+    registered: true,
+    ticketno: 'TICKET006'
+  },
+  {
+    _id: ObjectId('672c59e3c48083baef117b8f'),
+    age: 27,
+    username: 'lisa_white',
+    registered: false,
+    ticketno: 'TICKET009'
+  },
+  {
+    _id: ObjectId('672c59e3c48083baef117b8e'),
+    age: 23,
+    username: 'michael_brown',
+    registered: true,
+    ticketno: 'TICKET008'
+  },
+  {
+    _id: ObjectId('672c59e3c48083baef117b8d'),
+    age: 19,
+    username: 'olivia_williams',
+    registered: false,
+    ticketno: 'TICKET007'
+  },
+  {
+    _id: ObjectId('672c59e3c48083baef117b93'),
+    age: 38,
+    username: 'sophie_hall',
+    registered: true,
+    ticketno: 'TICKET013'
+  }
+]
+Assign1> show collections
+demo
+students
+users
+Assign1> db.demo.find({'tags': 'database'})
+[
+  {
+    _id: ObjectId('672c4992c48083baef117b7c'),
+    title: 'MongoDB',
+    description: 'MongoDB is no sql database',
+    tags: [ 'mongodb', 'database', 'NoOSQL' ],
+    likes: 100
+  }
+]
+Assign1> db.demo.insertMany{
+Uncaught:
+SyntaxError: Missing semicolon. (1:18)
+
+> 1 | db.demo.insertMany{
+    |                   ^
+  2 |
+
+Assign1> db.demo.insertMany(
+... [{
+...   "_id": 1,
+...   "fruit": ["apple", "banana", "peach"]
+... }
+... ,{
+...   "_id": 2,
+...   "fruit": ["apple", "kumquat", "orange"]
+... }
+... ,{
+...   "_id": 3,
+...   "fruit": ["cherry", "banana", "apple"]
+... }
+... ])
+{ acknowledged: true, insertedIds: { '0': 1, '1': 2, '2': 3 } }
+Assign1> db.demo.find({'fruit': 'cherry'})
+[ { _id: 3, fruit: [ 'cherry', 'banana', 'apple' ] } ]
+Assign1> db.demo.find({'fruit': {'$all': ['apple', 'banana']}})
+[
+  { _id: 1, fruit: [ 'apple', 'banana', 'peach' ] },
+  { _id: 3, fruit: [ 'cherry', 'banana', 'apple' ] }
+]
+Assign1> db.demo.find({'fruit': {'$all': ['apple', 'banana', 'peach']}})
+[ { _id: 1, fruit: [ 'apple', 'banana', 'peach' ] } ]
+Assign1> db.demo.find({'fruit': {'$all': ['banana', 'apple', 'peach']}})
+[ { _id: 1, fruit: [ 'apple', 'banana', 'peach' ] } ]
+Assign1> db.demo.findOne()
+{
+  _id: ObjectId('672c4992c48083baef117b7c'),
+  title: 'MongoDB',
+  description: 'MongoDB is no sql database',
+  tags: [ 'mongodb', 'database', 'NoOSQL' ],
+  likes: 100
+}
+Assign1> db.demo.insert(
+... {'_id': 4, 'fruits': ['apple', 'chickoo']}
+... )
+{ acknowledged: true, insertedIds: { '0': 4 } }
+Assign1> db.food.find({ "fruit": { "$size": 3 } })
+
+Assign1> db.food.find({ "fruit": { "$size": 3 } })
+
+Assign1> db.demo.find({ "fruit": { "$size": 3 } })
+[
+  { _id: 1, fruit: [ 'apple', 'banana', 'peach' ] },
+  { _id: 2, fruit: [ 'apple', 'kumquat', 'orange' ] },
+  { _id: 3, fruit: [ 'cherry', 'banana', 'apple' ] }
+]
+Assign1> db.demo.update({ "_id": 1 }, { "$push": { "fruit": "strawberry" }, "$inc": { "size": 1 } })
+{
+  acknowledged: true,
+  insertedId: null,
+  matchedCount: 1,
+  modifiedCount: 1,
+  upsertedCount: 0
+}
+Assign1> db.demo.find({ "fruit": { "$size": 3 } })
+[
+  { _id: 2, fruit: [ 'apple', 'kumquat', 'orange' ] },
+  { _id: 3, fruit: [ 'cherry', 'banana', 'apple' ] }
+]
+Assign1> getHistory()
+ReferenceError: getHistory is not defined
+Please enter a MongoDB connection string (DefaulPleaPlePleasPleaPleasPleaseAssignAssign1>AssigAssign1>
+Assign1>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

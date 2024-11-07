@@ -1,0 +1,310 @@
+NOTE : create email index also after deleting duplicates
+
+
+Assign2> show dbs
+Assign1     184.00 KiB
+Twitter     396.00 KiB
+admin        40.00 KiB
+bookstore    40.00 KiB
+config      108.00 KiB
+local        88.00 KiB
+mapReduce   120.00 KiB
+recipe      380.00 KiB
+team404     184.00 KiB
+test         40.00 KiB
+wanderlust  416.00 KiB
+Assign2> db.students.insertMany([
+...   { name: "John Doe", major: "Computer Science", gpa: 3.8, email: "john.doe@example.com" },
+...   { name: "Alice Smith", major: "Electrical Engineering", gpa: 3.5, email: "alice.smith@example.com" },
+...   { name: "Bob Brown", major: "Computer Science", gpa: 3.9, email: "bob.brown@example.com" },
+...   { name: "Eve White", major: "Mechanical Engineering", gpa: 3.4, email: "eve.white@example.com" },
+...   { name: "Charlie Green", major: "Computer Science", gpa: 3.7, email: "charlie.green@example.com" },
+...   { name: "David Black", major: "Physics", gpa: 3.2, email: "david.black@example.com" },
+...   { name: "Alice Smith", major: "Electrical Engineering", gpa: 3.6, email: "alice.smith@example.com" }, // Duplicate email
+...   { name: "John Doe", major: "Computer Science", gpa: 3.7, email: "john.doe@example.com" }  // Duplicate email
+Assign2> use Assign2
+already on db Assign2
+Assign2> db.students.insertMany([ { name: "John Doe", major: "Computer Science", gpa: 3.8, email: "john.doe@example.com" }, { name: "Alice Smith", major: "Electrical Engineering", gpa: 3.5, email: "alice.smith@example.com" }, { name: "Bob Brown", major: "Computer Science", gpa: 3.9, email: "bob.brown@example.com" }, { name: "Eve White", major: "Mechanical Engineering", gpa: 3.4, email: "eve.white@example.com" }, { name: "Charlie Green", major: "Computer Science", gpa: 3.7, email: "charlie.green@example.com" }, { name: "David Black", major: "Physics", gpa: 3.2, email: "david.black@example.com" }, { name: "Alice Smith", major: "Electrical Engineering", gpa: 3.6, email: "alice.smith@example.com" }, /* Duplicate email*/ { name: "John Doe", major: "Computer Science", gpa: 3.7, email: "john.doe@example.com" } /* Duplicate email*/] )
+{
+  acknowledged: true,
+  insertedIds: {
+    '0': ObjectId('672cd1f386e9baf1c9117b83'),
+    '1': ObjectId('672cd1f386e9baf1c9117b84'),
+    '2': ObjectId('672cd1f386e9baf1c9117b85'),
+    '3': ObjectId('672cd1f386e9baf1c9117b86'),
+    '4': ObjectId('672cd1f386e9baf1c9117b87'),
+    '5': ObjectId('672cd1f386e9baf1c9117b88'),
+    '6': ObjectId('672cd1f386e9baf1c9117b89'),
+    '7': ObjectId('672cd1f386e9baf1c9117b8a')
+  }
+}
+Assign2> // 1. Create a single-field index on the "name" field
+
+Assign2> db.students.createIndex({ name: 1 })
+name_1
+Assign2> // Verify the creation of the single-field index
+
+Assign2> db.students.getIndexes()
+[
+  { v: 2, key: { _id: 1 }, name: '_id_' },
+  { v: 2, key: { name: 1 }, name: 'name_1' }
+]
+Assign2> // 2. Create a compound index on "major" and "gpa" fields
+
+Assign2> db.students.createIndex({ major: 1, gpa: 1 });
+major_1_gpa_1
+Assign2> db.students.getIndexes()
+[
+  { v: 2, key: { _id: 1 }, name: '_id_' },
+  { v: 2, key: { name: 1 }, name: 'name_1' },
+  { v: 2, key: { major: 1, gpa: 1 }, name: 'major_1_gpa_1' }
+]
+Assign2> db.students.createIndex({ email: 1 }, { unique: true });
+MongoServerError[DuplicateKey]: Index build failed: 79102d04-4950-489d-bb7c-2cd9db95888d: Collection Assign2.students ( 83c01783-2b43-4689-840a-89d2b1332b6d ) :: caused by :: E11000 duplicate key error collection: Assign2.students index: email_1 dup key: { email: "alice.smith@example.com" }
+Assign2> db.students.getIndexes()
+[
+  { v: 2, key: { _id: 1 }, name: '_id_' },
+  { v: 2, key: { name: 1 }, name: 'name_1' },
+  { v: 2, key: { major: 1, gpa: 1 }, name: 'major_1_gpa_1' }
+]
+Assign2> db.students.aggregate([
+...   { $group: { _id: "$email", count: { $sum: 1 }, docs: { $push: "$_id" } } },
+...   { $match: { count: { $gt: 1 } } },
+... ]).forEach(doc => {
+...   // Remove duplicates, keep the first entry, remove the rest
+...   doc.docs.slice(1).forEach(id => {
+...     db.students.deleteOne({ _id: id });
+...   });
+... });
+
+--------NOTE here
+db.students.createIndex({ email: 1 }, { unique: true });
+
+Assign2> db.students.dropIndex({ email: 1 });
+MongoshInternalError[IndexNotFound]: can't find index with key: { email: 1 }
+Assign2> db.students.createIndex({ email: 1 }, { unique: true });
+email_1
+Assign2> db.students.getIndexes()
+[
+  { v: 2, key: { _id: 1 }, name: '_id_' },
+  { v: 2, key: { name: 1 }, name: 'name_1' },
+  { v: 2, key: { major: 1, gpa: 1 }, name: 'major_1_gpa_1' },
+  { v: 2, key: { email: 1 }, name: 'email_1', unique: true }
+]
+Assign2> db.students.dropIndex({ email: 1 }, { unique: true });
+{ nIndexesWas: 4, ok: 1 }
+Assign2> db.students.getIndexes()
+[
+  { v: 2, key: { _id: 1 }, name: '_id_' },
+  { v: 2, key: { name: 1 }, name: 'name_1' },
+  { v: 2, key: { major: 1, gpa: 1 }, name: 'major_1_gpa_1' }
+]
+Assign2> db.students.dropIndex({ email: 1 }, { unique: true });
+MongoshInternalError[IndexNotFound]: can't find index with key: { email: 1 }
+Assign2> db.students.dropIndex({ name: 1 })
+{ nIndexesWas: 3, ok: 1 }
+Assign2> db.students.getIndexes()
+[
+  { v: 2, key: { _id: 1 }, name: '_id_' },
+  { v: 2, key: { major: 1, gpa: 1 }, name: 'major_1_gpa_1' }
+]
+Assign2> db.students.dropIndex({ major: 1, gpa: 1 });
+{ nIndexesWas: 2, ok: 1 }
+Assign2> db.students.getIndexes()
+[ { v: 2, key: { _id: 1 }, name: '_id_' } ]
+Assign2> db.students.indexStats()
+TypeError: db.students.indexStats is not a function
+Assign2> printjson(db.students.indexStats());
+TypeError: db.students.indexStats is not a function
+Assign2>
+
+
+
+
+
+--------------------------------------------------------------------------
+
+Please enter a MongoDB connection string (Default: mongodb://localhost/): Assign2b
+Assign2b
+Current Mongosh Log ID: 672cea60b70e803c1b117b7a
+Connecting to:          mongodb://127.0.0.1:27017/Assign2b?directConnection=true&serverSelectionTimeoutMS=2000&appName=mongosh+2.2.4
+Using MongoDB:          7.0.12
+Using Mongosh:          2.2.4
+mongosh 2.3.3 is available for download: https://www.mongodb.com/try/download/shell
+
+For mongosh info see: https://docs.mongodb.com/mongodb-shell/
+
+------
+   The server generated these startup warnings when booting
+   2024-11-04T23:59:57.399+05:30: Access control is not enabled for the database. Read and write access to data and configuration is unrestricted
+------
+
+Assign2b> db.students_club.insertMany([
+...   { _id: 1, club_name: "Robotics Club", member_count: 20, email: "alice@example.com" },
+...   { _id: 2, club_name: "Science Club", member_count: 15, email: "bob@example.com" },
+...   { _id: 3, club_name: "Art Club", member_count: 30, email: "charlie@example.com" },
+...   { _id: 4, club_name: "Robotics Club", member_count: 25, email: "david@example.com" },
+...   { _id: 5, club_name: "Science Club", member_count: 20, email: "alice@example.com" }, // Duplicate email
+...   { _id: 6, club_name: "Music Club", member_count: 10, email: "eve@example.com" }
+... ]);
+{
+  acknowledged: true,
+  insertedIds: { '0': 1, '1': 2, '2': 3, '3': 4, '4': 5, '5': 6 }
+}
+Assign2b> // Create single-field index
+
+Assign2b> db.students_club.createIndex({ club_name: 1 })
+club_name_1
+Assign2b> db.students_club.getIndexes()
+[
+  { v: 2, key: { _id: 1 }, name: '_id_' },
+  { v: 2, key: { club_name: 1 }, name: 'club_name_1' }
+]
+Assign2b> // Create compound index
+
+Assign2b> db.students_club.createIndex({ club_name: 1, member_count: -1 })
+club_name_1_member_count_-1
+Assign2b> db.students_club.getIndexes()
+[
+  { v: 2, key: { _id: 1 }, name: '_id_' },
+  { v: 2, key: { club_name: 1 }, name: 'club_name_1' },
+  {
+    v: 2,
+    key: { club_name: 1, member_count: -1 },
+    name: 'club_name_1_member_count_-1'
+  }
+]
+Assign2b> db.students_club.createIndex({ email: 1 }, { unique: true });
+MongoServerError[DuplicateKey]: Index build failed: bd2f7d7e-b493-412f-8e16-8646d8c82305: Collection Assign2b.students_club ( 5a66fc7e-23b8-4cc2-a8a8-de5a6c5f6dbd ) :: caused by :: E11000 duplicate key error collection: Assign2b.students_club index: email_1 dup key: { email: "alice@example.com" }
+Assign2b> db.students_club.aggregate([
+...   { $group: { _id: "$email", count: { $sum: 1 }, docs: { $push: "$_id" } } },
+...   { $match: { count: { $gt: 1 } } },
+... ]).forEach(doc => {
+...   // Remove duplicates, keep the first entry, remove the rest
+...   doc.docs.slice(1).forEach(id => {
+...     db.students_club.deleteOne({ _id: id });
+...   });
+... });
+
+Assign2b> db.students_club.createIndex({ email: 1 }, { unique: true });
+email_1
+Assign2b> db.students_club.getIndexes()
+[
+  { v: 2, key: { _id: 1 }, name: '_id_' },
+  { v: 2, key: { club_name: 1 }, name: 'club_name_1' },
+  {
+    v: 2,
+    key: { club_name: 1, member_count: -1 },
+    name: 'club_name_1_member_count_-1'
+  },
+  { v: 2, key: { email: 1 }, name: 'email_1', unique: true }
+]
+Assign2b> db.students_club.dropIndex('email_1')
+{ nIndexesWas: 4, ok: 1 }
+Assign2b> db.students_club.getIndexes()
+[
+  { v: 2, key: { _id: 1 }, name: '_id_' },
+  { v: 2, key: { club_name: 1 }, name: 'club_name_1' },
+  {
+    v: 2,
+    key: { club_name: 1, member_count: -1 },
+    name: 'club_name_1_member_count_-1'
+  }
+]
+Assign2b> db.students_club.dropIndex("club_name_1_member_count_-1");
+{ nIndexesWas: 3, ok: 1 }
+Assign2b> db.students_club.getIndexes()
+[
+  { v: 2, key: { _id: 1 }, name: '_id_' },
+  { v: 2, key: { club_name: 1 }, name: 'club_name_1' }
+]
+Assign2b> db.students_club.dropIndex("club_name_1");
+{ nIndexesWas: 2, ok: 1 }
+Assign2b> db.students_club.getIndexes()
+[ { v: 2, key: { _id: 1 }, name: '_id_' } ]
+Assign2b> db.students_courses.insertMany([
+...   { _id: 1, name: "Alice", courses: ["Math", "Physics", "Computer Science"] },
+...   { _id: 2, name: "Bob", courses: ["Biology", "Math", "Chemistry"] },
+...   { _id: 3, name: "Charlie", courses: ["Physics", "Math", "Biology"] },
+...   { _id: 4, name: "David", courses: ["Computer Science", "Math"] }
+... ]);
+{ acknowledged: true, insertedIds: { '0': 1, '1': 2, '2': 3, '3': 4 } }
+Assign2b> show collections
+students_club
+students_courses
+Assign2b> // Create a multikey index on the courses field
+
+Assign2b> db.students_courses.createIndex({ courses: 1 });
+courses_1
+Assign2b> db.students_courses.getIndexes()
+[
+  { v: 2, key: { _id: 1 }, name: '_id_' },
+  { v: 2, key: { courses: 1 }, name: 'courses_1' }
+]
+Assign2b> // Find students who are enrolled in the "Math" course
+
+Assign2b> db.students_courses.find({ courses: "Math" });
+[
+  {
+    _id: 1,
+    name: 'Alice',
+    courses: [ 'Math', 'Physics', 'Computer Science' ]
+  },
+  { _id: 2, name: 'Bob', courses: [ 'Biology', 'Math', 'Chemistry' ] },
+  {
+    _id: 3,
+    name: 'Charlie',
+    courses: [ 'Physics', 'Math', 'Biology' ]
+  },
+  { _id: 4, name: 'David', courses: [ 'Computer Science', 'Math' ] }
+]
+Assign2b> // Find students who are enrolled in "Math" and "Physics"
+
+Assign2b> db.students_courses.find({ courses: { $all: ["Math", "Physics"] } });
+[
+  {
+    _id: 1,
+    name: 'Alice',
+    courses: [ 'Math', 'Physics', 'Computer Science' ]
+  },
+  {
+    _id: 3,
+    name: 'Charlie',
+    courses: [ 'Physics', 'Math', 'Biology' ]
+  }
+]
+Assign2b>
+
+NOTE : 
+{
+  "_id": 1,
+  "name": "Alice",
+  "courses": ["Math", "Physics", "Computer Science"]
+}
+{
+  "_id": 2,
+  "name": "Bob",
+  "courses": ["Math", "Chemistry"]
+}
+{
+  "_id": 3,
+  "name": "Charlie",
+  "courses": ["Physics", "Biology", "Math"]
+}
+Multikey Index Entries on courses Field
+When you create a multikey index on the courses field, MongoDB creates separate index entries for each element in the courses array for every document.
+
+Index Key	Document Reference (ID)
+"Math"	1
+"Physics"	1
+"Computer Science"	1
+"Math"	2
+"Chemistry"	2
+"Physics"	3
+"Biology"	3
+"Math"	3
+Explanation
+For _id: 1, MongoDB creates index entries for "Math", "Physics", and "Computer Science".
+For _id: 2, index entries are created for "Math" and "Chemistry".
+For _id: 3, index entries are created for "Physics", "Biology", and "Math".
+The Math index key, for example, points to multiple document references (1, 2, and 3), allowing efficient queries on any document containing "Math" in its courses array.

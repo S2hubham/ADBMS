@@ -1,0 +1,142 @@
+-mongo is the shell interface that allows you to interact with the server and manage data.
+-mongod is the database server.
+
+Indexing in MongoDB
+Purpose: Indexes enhance query performance by allowing faster retrieval of documents based on specific field values without scanning the entire collection.
+
+1. Default _id Index
+Automatically created for each collection to ensure uniqueness for the _id field.
+Example:
+db.users.find({ "_id": ObjectId("605c72ef1532071d1e4d22d") });
+This query will leverage the default _id index for efficient searching.
+
+2. Single Field Index
+User-defined index on a single field to speed up queries filtering or sorting on that field.
+Example:
+db.products.createIndex({ "name": 1 });  // Ascending order index on "name"
+
+// Query using the index
+db.products.find({ "name": "Laptop" });
+
+3. Compound Index
+Index on multiple fields. Query performance depends on the order of fields in the index.
+Example:
+db.orders.createIndex({ "userId": 1, "orderDate": -1 });  // Ascending on "userId", descending on "orderDate"
+
+// Query using the compound index
+db.orders.find({ "userId": 1234 }).sort({ "orderDate": -1 });
+
+4. Multikey Index (when working with arrays we use these and no need of creating them as they as handled by mongodb itself)
+Automatically created when a field contains an array. It creates a separate index entry for each element in the array.
+Example:
+db.products.createIndex({ "tags": 1 });  // Index on the "tags" array field
+
+// Query using the multikey index
+db.products.find({ "tags": "electronics" });
+
+5. Geospatial Index
+Used for geospatial data. There are two types: 2d (planar geometry) and 2dsphere (spherical geometry).
+Example (2dsphere index):
+db.locations.createIndex({ "location": "2dsphere" });
+
+// Query for documents near a given point (latitude, longitude)
+db.locations.find({
+  "location": {
+    $nearSphere: {
+      $geometry: { type: "Point", coordinates: [ -73.97, 40.77 ] },
+      $maxDistance: 1000
+    }
+  }
+});
+
+6. Text Index
+Supports full-text search on string fields, ignoring common stop words and stemming the words.
+
+Example:
+db.articles.createIndex({ "content": "text" });
+
+// Query using text search
+db.articles.find({ $text: { $search: "MongoDB" } });
+
+7. Hashed Index
+Used for hash-based sharding. Supports only equality matches, not range queries.
+
+Example:
+db.users.createIndex({ "email": "hashed" });
+
+// Query using equality match
+db.users.find({ "email": "user@example.com" });
+Index Properties
+Unique Index
+Ensures that no two documents have the same value for the indexed field.
+
+Example:
+db.users.createIndex({ "username": 1 }, { unique: true });
+
+// Attempting to insert a duplicate value will throw an error
+db.users.insert({ "username": "john_doe" });  // Success
+db.users.insert({ "username": "john_doe" });  // Error: duplicate key
+Sparse Index
+Only indexes documents that contain the indexed field, ignoring documents without it.
+
+Example:
+db.products.createIndex({ "discount": 1 }, { sparse: true });
+
+// This index will only include documents that have the "discount" field
+db.products.find({ "discount": { $gt: 0 } });
+Key Considerations
+Performance: Indexes improve read performance but slow down write operations (insert/update) since the index must be updated.
+Choosing Index Type: Select the index type based on the query pattern (single field, compound, geospatial, text, etc.).
+Multikey Index: Be cautious of limitations with range queries when working with arrays.
+This enhanced summary with examples should help you quickly reference different types of MongoDB indexes and their usage.
+
+
+-sharding
+Sharding in MongoDB is a method for distributing data across multiple servers (or "shards") to ensure that a database can handle large amounts of data and high throughput operations efficiently. It is a horizontal scaling technique, where data is partitioned into smaller, manageable pieces and distributed across different servers.
+
+
+NOTE : 
+-Unique constraint
+A unique index ensures that the indexed field has unique values across all documents.
+If there are duplicates in the data when you try to create a unique index, MongoDB will reject it unless you clean up the data first (i.e., removing duplicates).
+You may need to drop duplicate entries or resolve conflicts before applying the unique index on an existing collection.
+db.users.createIndex({ "email": 1 }, { unique: true})
+
+-sparse constraint
+By default, MongoDB includes all documents in the index, regardless of whether they have the indexed field. However, if a field is missing in some documents, MongoDB will still create an index entry for those documents, which can lead to unnecessary index entries and larger index sizes.
+When you use the sparse option, MongoDB will only index the documents that contain the indexed field, ignoring those that don't have the field.
+Sparse indexes only include documents that have the indexed field. Documents without the field are excluded from the index.
+db.users.createIndex({ "email": 1 }, { sparse: true })
+Diff between regular and sparse
+1)Size of Index	Larger, since all documents are included	Smaller, as it only includes documents with the indexed field
+2)Indexed Documents	All documents are indexed, even if they don’t have the field	Only documents with the indexed field are included
+
+
+-combination of sparse and unique
+db.users.createIndex({ "email": 1 }, { unique: true, sparse: true })
+{ "_id": 1, "name": "John", "email": "john@example.com" }
+{ "_id": 2, "name": "Alice" }
+{ "_id": 3, "name": "Bob", "email": "bob@example.com" }
+{ "_id": 4, "name": "Eve" }
+Here, the documents with duplicate emails (if any) would be rejected, but documents without the email field would still be allowed in the collection.
+In short, the index creation will only succeed if all documents with the indexed field have unique values, even if some documents do not have the indexed field.
+
+
+-creating index
+db.collection.createIndex({a: 1}, {unique: true})
+It ensures that an index exists on the specified field(s), and if an index already exists, it won't create a duplicate.
+
+db.collection.ensureIndex({a:1,b:1},{unique:true}) (multikey/compound index) 
+
+db.collection.createIndex({ _id: "hashed" }) (hashed index)
+
+
+-drop duplicates
+db.collection.ensureIndex({a:1},{unique:true,dropDups:true})
+To force the creation of a unique indexindex on a collection with duplicate values in the field you are indexing you can use the dropDups option. This will force MongoDB to create a unique index by deleting documents with duplicate values when building the index.
+
+
+
+
+
+

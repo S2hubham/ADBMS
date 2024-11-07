@@ -1,0 +1,1111 @@
+Problem Statement 1: MongoDB Aggregation
+You have been given a dataset containing details about different books. Each book has the following
+fields:
+ title: The title of the book
+ author: The author of the book
+ genre: The genre of the book (e.g., Fiction, Non-Fiction, Mystery, Sci-Fi)
+ price: The price of the book
+ published_date: The date the book was published
+The dataset has been stored in a MongoDB collection named books.
+Task:
+Using the MongoDB aggregation framework, perform the following tasks:
+1. Find the average price of all books.
+2. find the count of books in each genre.
+3. For each genre, find the most expensive book.
+4. Find the authors who have written more than 3 books.
+5. Sort the books by published_date in descending order, and then by price in ascending order.
+
+
+Assign3> show collections
+inventory
+student
+Assign3> db.book.insertMany(
+... [
+...   {
+...     "title": "The Great Adventure",
+...     "author": "Alice Johnson",
+...     "genre": "Fiction",
+...     "price": 15.99,
+...     "published_date": ISODate("2020-03-15")
+...   },
+...   {
+...     "title": "Science and Beyond",
+...     "author": "John Smith",
+...     "genre": "Non-Fiction",
+...     "price": 25.50,
+...     "published_date": ISODate("2019-08-10")
+...   },
+...   {
+...     "title": "Mystery of the Hidden Temple",
+...     "author": "Emily Clark",
+...     "genre": "Mystery",
+...     "price": 12.75,
+...     "published_date": ISODate("2021-06-21")
+...   },
+...   {
+...     "title": "Journey to Mars",
+...     "author": "Alice Johnson",
+...     "genre": "Sci-Fi",
+...     "price": 18.00,
+...     "published_date": ISODate("2022-01-05")
+...   },
+...   {
+...     "title": "The Art of Cooking",
+...     "author": "John Smith",
+...     "genre": "Non-Fiction",
+...     "price": 30.00,
+...     "published_date": ISODate("2018-05-20")
+...   },
+...   {
+...     "title": "Secrets of the Universe",
+...     "author": "Robert Brown",
+...     "genre": "Sci-Fi",
+...     "price": 22.50,
+...     "published_date": ISODate("2020-12-11")
+...   },
+...   {
+...     "title": "The Last Detective",
+...     "author": "Emily Clark",
+...     "genre": "Mystery",
+...     "price": 14.30,
+...     "published_date": ISODate("2019-11-05")
+...   },
+...   {
+...     "title": "Gardening Tips and Tricks",
+...     "author": "Alice Johnson",
+...     "genre": "Non-Fiction",
+...     "price": 20.99,
+...     "published_date": ISODate("2017-04-15")
+...   },
+...   {
+...     "title": "Mastering Coding",
+...     "author": "John Smith",
+...     "genre": "Non-Fiction",
+...     "price": 45.00,
+...     "published_date": ISODate("2021-09-12")
+...   },
+...   {
+...     "title": "Alien Invasion",
+...     "author": "Emily Clark",
+...     "genre": "Sci-Fi",
+...     "price": 17.20,
+...     "published_date": ISODate("2023-02-19")
+...   },
+...   {
+...     "title": "Fictional Realms",
+...     "author": "Alice Johnson",
+...     "genre": "Fiction",
+...     "price": 16.75,
+...     "published_date": ISODate("2021-03-03")
+...   }
+... ]
+... )
+{
+  acknowledged: true,
+  insertedIds: {
+    '0': ObjectId('672d086bf5ec9a7549117b7b'),
+    '1': ObjectId('672d086bf5ec9a7549117b7c'),
+    '2': ObjectId('672d086bf5ec9a7549117b7d'),
+    '3': ObjectId('672d086bf5ec9a7549117b7e'),
+    '4': ObjectId('672d086bf5ec9a7549117b7f'),
+    '5': ObjectId('672d086bf5ec9a7549117b80'),
+    '6': ObjectId('672d086bf5ec9a7549117b81'),
+    '7': ObjectId('672d086bf5ec9a7549117b82'),
+    '8': ObjectId('672d086bf5ec9a7549117b83'),
+    '9': ObjectId('672d086bf5ec9a7549117b84'),
+    '10': ObjectId('672d086bf5ec9a7549117b85')
+  }
+}
+  {ign3>
+...     $group: {
+...       _id: null,
+...       averagePrice: { $avg: "$price" }
+...     }
+...   }
+... ])
+Uncaught:
+SyntaxError: Missing semicolon. (4:18)
+
+  2 |     $group: {
+  3 |       _id: null,
+> 4 |       averagePrice: { $avg: "$price" }
+    |                   ^
+  5 |     }
+  6 |   }
+  7 | ])
+
+Assign3> db.books.aggregate([
+...   {
+...     $group: {
+...       _id: null,
+...       averagePrice: { $avg: "$price" }
+...     }
+...   }
+... ])
+
+Assign3> db.book.aggregate([ { $group: { _id: null, averagePrice: { $avg: "$price" } } }] )
+[ { _id: null, averagePrice: 21.725454545454543 } ]
+Assign3> db.book.aggregate([ { $group: { _id: '$genre', count: { $sum: 1} } }] )
+[
+  { _id: 'Fiction', count: 2 },
+  { _id: 'Mystery', count: 2 },
+  { _id: 'Non-Fiction', count: 4 },
+  { _id: 'Sci-Fi', count: 3 }
+]
+Assign3> db.books.aggregate([
+...   {
+...     $sort: { price: -1 } // Sort by price in descending order
+...   },
+...   {
+...     $group: {
+...       _id: "$genre",
+...       mostExpensiveBook: { $first: "$$ROOT" } // Selects the first document in each group
+...     }
+...   }
+... ])
+
+Assign3> db.book.aggregate([ { $sort: { price: -1 } /* Sort by price in descending order*/ }, { $group: { _id: "$genre", mostExpensiveBook: { $first: "$$ROOT" } /* Selects the first document in each group*/ } }] )
+[
+  {
+    _id: 'Sci-Fi',
+    mostExpensiveBook: {
+      _id: ObjectId('672d086bf5ec9a7549117b80'),
+      title: 'Secrets of the Universe',
+      author: 'Robert Brown',
+      genre: 'Sci-Fi',
+      price: 22.5,
+      published_date: ISODate('2020-12-11T00:00:00.000Z')
+    }
+  },
+  {
+    _id: 'Mystery',
+    mostExpensiveBook: {
+      _id: ObjectId('672d086bf5ec9a7549117b81'),
+      title: 'The Last Detective',
+      author: 'Emily Clark',
+      genre: 'Mystery',
+      price: 14.3,
+      published_date: ISODate('2019-11-05T00:00:00.000Z')
+    }
+  },
+  {
+    _id: 'Non-Fiction',
+    mostExpensiveBook: {
+      _id: ObjectId('672d086bf5ec9a7549117b83'),
+      title: 'Mastering Coding',
+      author: 'John Smith',
+      genre: 'Non-Fiction',
+      price: 45,
+      published_date: ISODate('2021-09-12T00:00:00.000Z')
+    }
+  },
+  {
+    _id: 'Fiction',
+    mostExpensiveBook: {
+      _id: ObjectId('672d086bf5ec9a7549117b85'),
+      title: 'Fictional Realms',
+      author: 'Alice Johnson',
+      genre: 'Fiction',
+      price: 16.75,
+      published_date: ISODate('2021-03-03T00:00:00.000Z')
+    }
+  }
+]
+Assign3> db.books.aggregate([
+...   {
+...     $sort: {
+...       published_date: -1, // Sort by published_date in descending order
+...       price: 1            // Sort by price in ascending order
+...     }
+...   }
+... ])
+
+Assign3> db.book.aggregate([ { $sort: { published_date: -1, /* Sort by published_date in descending order*/ price: 1 /* Sort by price in ascending order*/ } }] )
+[
+  {
+    _id: ObjectId('672d086bf5ec9a7549117b84'),
+    title: 'Alien Invasion',
+    author: 'Emily Clark',
+    genre: 'Sci-Fi',
+    price: 17.2,
+    published_date: ISODate('2023-02-19T00:00:00.000Z')
+  },
+  {
+    _id: ObjectId('672d086bf5ec9a7549117b7e'),
+    title: 'Journey to Mars',
+    author: 'Alice Johnson',
+    genre: 'Sci-Fi',
+    price: 18,
+    published_date: ISODate('2022-01-05T00:00:00.000Z')
+  },
+  {
+    _id: ObjectId('672d086bf5ec9a7549117b83'),
+    title: 'Mastering Coding',
+    author: 'John Smith',
+    genre: 'Non-Fiction',
+    price: 45,
+    published_date: ISODate('2021-09-12T00:00:00.000Z')
+  },
+  {
+    _id: ObjectId('672d086bf5ec9a7549117b7d'),
+    title: 'Mystery of the Hidden Temple',
+    author: 'Emily Clark',
+    genre: 'Mystery',
+    price: 12.75,
+    published_date: ISODate('2021-06-21T00:00:00.000Z')
+  },
+  {
+    _id: ObjectId('672d086bf5ec9a7549117b85'),
+    title: 'Fictional Realms',
+    author: 'Alice Johnson',
+    genre: 'Fiction',
+    price: 16.75,
+    published_date: ISODate('2021-03-03T00:00:00.000Z')
+  },
+  {
+    _id: ObjectId('672d086bf5ec9a7549117b80'),
+    title: 'Secrets of the Universe',
+    author: 'Robert Brown',
+    genre: 'Sci-Fi',
+    price: 22.5,
+    published_date: ISODate('2020-12-11T00:00:00.000Z')
+  },
+  {
+    _id: ObjectId('672d086bf5ec9a7549117b7b'),
+    title: 'The Great Adventure',
+    author: 'Alice Johnson',
+    genre: 'Fiction',
+    price: 15.99,
+    published_date: ISODate('2020-03-15T00:00:00.000Z')
+  },
+  {
+    _id: ObjectId('672d086bf5ec9a7549117b81'),
+    title: 'The Last Detective',
+    author: 'Emily Clark',
+    genre: 'Mystery',
+    price: 14.3,
+    published_date: ISODate('2019-11-05T00:00:00.000Z')
+  },
+  {
+    _id: ObjectId('672d086bf5ec9a7549117b7c'),
+    title: 'Science and Beyond',
+    author: 'John Smith',
+    genre: 'Non-Fiction',
+    price: 25.5,
+    published_date: ISODate('2019-08-10T00:00:00.000Z')
+  },
+  {
+    _id: ObjectId('672d086bf5ec9a7549117b7f'),
+    title: 'The Art of Cooking',
+    author: 'John Smith',
+    genre: 'Non-Fiction',
+    price: 30,
+    published_date: ISODate('2018-05-20T00:00:00.000Z')
+  },
+  {
+    _id: ObjectId('672d086bf5ec9a7549117b82'),
+    title: 'Gardening Tips and Tricks',
+    author: 'Alice Johnson',
+    genre: 'Non-Fiction',
+    price: 20.99,
+    published_date: ISODate('2017-04-15T00:00:00.000Z')
+  }
+]
+Assign3>
+
+
+
+
+Problem Statement 2: MongoDB Aggregation
+
+2. You are working with an e-commerce platform that sells various products across different
+categories. You have access to a MongoDB collection named orders which keeps a record of all the
+purchases. Each document in this collection has the following fields:
+ orderId: A unique identifier for each order
+ customerId: A unique identifier for each customer
+ items: An array of objects where each object represents a product purchased and contains:
+ productId: The ID of the product
+ productName: Name of the product
+ category: The category of the product (e.g., Electronics, Clothing, Groceries)
+ price: The price of the product
+ quantity: The quantity of the product ordered
+ orderDate: The date and time when the order was placed
+
+
+
+Assign3> dborders.insertMany(
+...
+Assign3>
+(To exit, press Ctrl+C again or Ctrl+D or type .exit)
+Assign3> db.orders.insertMany(
+... [
+...   {
+...     "orderId": "O001",
+...     "customerId": "C001",
+...     "items": [
+...       { "productId": "P001", "productName": "Laptop", "category": "Electronics", "price": 1000, "quantity": 2 },
+...       { "productId": "P002", "productName": "Mouse", "category": "Electronics", "price": 20, "quantity": 1 }
+...     ],
+...     "orderDate": ISODate("2024-08-01T12:30:00Z"),
+...     "shippingAddress": "123 Elm St, Springfield, IL 62701",
+...     "status": "Shipped"
+...   },
+...   {
+...     "orderId": "O002",
+...     "customerId": "C002",
+...     "items": [
+...       { "productId": "P003", "productName": "Shirt", "category": "Clothing", "price": 25, "quantity": 3 }
+...     ],
+...     "orderDate": ISODate("2024-08-03T15:30:00Z"),
+...     "shippingAddress": "456 Oak St, Rivertown, TX 75001",
+...     "status": "Delivered"
+...   },
+...   {
+...     "orderId": "O003",
+...     "customerId": "C003",
+...     "items": [
+...       { "productId": "P004", "productName": "Banana", "category": "Groceries", "price": 1, "quantity": 10 },
+...       { "productId": "P005", "productName": "Apple", "category": "Groceries", "price": 1.5, "quantity": 5 }
+...     ],
+...     "orderDate": ISODate("2024-08-05T10:00:00Z"),
+...     "shippingAddress": "789 Pine St, Greendale, MA 01501",
+...     "status": "Shipped"
+...   },
+...   {
+...     "orderId": "O004",
+...     "customerId": "C001",
+...     "items": [
+...       { "productId": "P006", "productName": "T-shirt", "category": "Clothing", "price": 15, "quantity": 2 }
+...     ],
+...     "orderDate": ISODate("2024-08-07T11:00:00Z"),
+...     "shippingAddress": "123 Elm St, Springfield, IL 62701",
+...     "status": "Cancelled"
+...   },
+...   {
+...     "orderId": "O005",
+...     "customerId": "C004",
+...     "items": [
+...       { "productId": "P007", "productName": "Fridge", "category": "Electronics", "price": 500, "quantity": 1 }
+...     ],
+...     "orderDate": ISODate("2024-08-10T14:00:00Z"),
+...     "shippingAddress": "101 Maple St, Lakeview, FL 32123",
+...     "status": "Delivered"
+...   }
+... ]
+... )
+{
+  acknowledged: true,
+  insertedIds: {
+    '0': ObjectId('672d0bb4e8d5a23c0a117b7b'),
+    '1': ObjectId('672d0bb4e8d5a23c0a117b7c'),
+    '2': ObjectId('672d0bb4e8d5a23c0a117b7d'),
+    '3': ObjectId('672d0bb4e8d5a23c0a117b7e'),
+    '4': ObjectId('672d0bb4e8d5a23c0a117b7f')
+  }
+}
+Assign3>
+
+Assign3> db.orders.aggregate(
+... {$unwind: '$items'},
+... {$group: {_id: '$items.category', totalItemsSold: { $sum: "$items.quantity" }}},
+... { $sort: { totalItemsSold: -1 } },
+... { $limit: 3 }
+... )
+[
+  { _id: 'Groceries', totalItemsSold: 15 },
+  { _id: 'Clothing', totalItemsSold: 5 },
+  { _id: 'Electronics', totalItemsSold: 4 }
+]
+
+Assign3> db.orders.aggregate([
+...   { $unwind: "$items" },
+...   { $group: { _id: "$customerId", totalAmountSpent: { $sum: { $multiply: ["$items.price", "$items.quantity"] } } } }
+... ])
+[
+  { _id: 'C001', totalAmountSpent: 2050 },
+  { _id: 'C004', totalAmountSpent: 500 },
+  { _id: 'C002', totalAmountSpent: 75 },
+  { _id: 'C003', totalAmountSpent: 17.5 }
+]
+Assign3> db.orders.aggregate([ { $unwind: "$items" }, { $group: { _id: "$customerId", totalAmountSpent: { $sum: { $multiply: ["$items.price", "$items.quantity"] } } } }, {$sort: {'_id': 1}}] )
+[
+  { _id: 'C001', totalAmountSpent: 2050 },
+  { _id: 'C002', totalAmountSpent: 75 },
+  { _id: 'C003', totalAmountSpent: 17.5 },
+  { _id: 'C004', totalAmountSpent: 500 }
+]
+Assign3> db.orders.aggregate([
+...   { $unwind: "$items" },
+...   { $group: { _id: "$customerId", totalAmountSpent: { $sum: { $multiply: ["$items.price", "$items.quantity"] } } } },
+...   { $sort: { totalAmountSpent: -1 } },
+...   { $limit: 5 }
+... ])
+[
+  { _id: 'C001', totalAmountSpent: 2050 },
+  { _id: 'C004', totalAmountSpent: 500 },
+  { _id: 'C002', totalAmountSpent: 75 },
+  { _id: 'C003', totalAmountSpent: 17.5 }
+]
+Assign3> db.orders.aggregate([ { $unwind: "$items" }, { $group: { _id: "$customerId", totalAmountSpent: { $sum: { $multiply: ["$items.price", "$items.quantity"] } } } }, { $sort: { totalAmountSpent: -1 } }, { $limit: 2 }] )
+[
+  { _id: 'C001', totalAmountSpent: 2050 },
+  { _id: 'C004', totalAmountSpent: 500 }
+]
+
+Assign3> db.orders.aggregate([
+...   {
+...     $project: {
+...       orderDate: 1,
+...       items: 1,
+...       status: 1,
+...       totalAmount: { $sum: { $map: { input: "$items", as: "item", in: { $multiply: ["$$item.price", "$$item.quantity"] } } } },
+...       itemCount: { $sum: "$items.quantity" }
+...     }
+...   },
+...   {
+...     $unwind: "$items"
+...   },
+...   {
+...     $group: {
+...       _id: { month: { $month: "$orderDate" } },
+...       totalRevenue: { $sum: "$totalAmount" },
+...       totalOrders: { $sum: 1 },
+...       cancelledOrders: { $sum: { $cond: [{ $eq: ["$status", "Cancelled"] }, 1, 0] } },
+...       averageItemsPerOrder: { $avg: "$itemCount" },
+...       productSales: { $push: { productName: "$items.productName", quantity: "$items.quantity" } }
+...     }
+...   },
+...   {
+...     $unwind: "$productSales"
+...   },
+...   {
+...     $group: {
+...       _id: "$_id.month",
+...       totalRevenue: { $first: "$totalRevenue" },
+...       totalOrders: { $first: "$totalOrders" },
+...       cancelledOrders: { $first: "$cancelledOrders" },
+...       averageItemsPerOrder: { $first: "$averageItemsPerOrder" },
+...       mostSoldProduct: { $max: { productName: "$productSales.productName", quantity: "$productSales.quantity" } }
+...     }
+...   },
+...   {
+...     $project: {
+...       _id: 1,
+...       totalRevenue: 1,
+...       mostSoldProduct: 1,
+...       averageItemsPerOrder: 1,
+...       cancellationRate: { $divide: ["$cancelledOrders", "$totalOrders"] }
+...     }
+...   }
+... ])
+[
+  {
+    _id: 8,
+    totalRevenue: 4680,
+    averageItemsPerOrder: 6,
+    mostSoldProduct: { productName: 'T-shirt', quantity: 2 },
+    cancellationRate: 0.14285714285714285
+  }
+]
+Assign3>
+
+
+$unwind $items after the initial projection stage ensures that each product is treated separately during aggregation.
+Grouping by month also includes a productSales array to track all product sales.
+Another $unwind is performed on productSales to allow for finding the most sold product using a $max grouping operation.
+
+Assign3> db.orders.aggregate([
+...   {
+...     $project: {
+...       shippingAddress: 1,
+...       totalAmount: { $sum: { $map: { input: "$items", as: "item", in: { $multiply: ["$$item.price", "$$item.quantity"] } } } },
+...       zipCode: {
+...         $substr: [
+...           "$shippingAddress",
+...           { $subtract: [{ $strLenCP: "$shippingAddress" }, 5] }, // Calculate the starting index for the last 5 characters
+...           5 // Extract exactly 5 characters
+...         ]
+...       }
+...     }
+...   },
+...   {
+...     $group: {
+...       _id: "$zipCode",
+...       totalOrders: { $sum: 1 },
+...       averageOrderAmount: { $avg: "$totalAmount" }
+...     }
+...   }
+... ])
+[
+  { _id: '32123', totalOrders: 1, averageOrderAmount: 500 },
+  { _id: '01501', totalOrders: 1, averageOrderAmount: 17.5 },
+  { _id: '75001', totalOrders: 1, averageOrderAmount: 75 },
+  { _id: '62701', totalOrders: 2, averageOrderAmount: 1025 }
+]
+Assign3>
+
+$strLenCP calculates the number of characters in shippingAddress.
+$subtract is used to determine the starting index for extracting the last 5 characters.
+The corrected zipCode extraction ensures that the substring starts from the correct index without using a negative value.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--------------------------------------------------------PRACTICE
+
+Please enter a MongoDB connection string (Default: mongodb://localhost/): Assign3
+Assign3
+Current Mongosh Log ID: 672ced2f753e43bcfd117b7a
+Connecting to:          mongodb://127.0.0.1:27017/Assign3?directConnection=true&serverSelectionTimeoutMS=2000&appName=mongosh+2.2.4
+Using MongoDB:          7.0.12
+Using Mongosh:          2.2.4
+mongosh 2.3.3 is available for download: https://www.mongodb.com/try/download/shell
+
+For mongosh info see: https://docs.mongodb.com/mongodb-shell/
+
+------
+   The server generated these startup warnings when booting
+   2024-11-04T23:59:57.399+05:30: Access control is not enabled for the database. Read and write access to data and configuration is unrestricted
+------
+
+Assign3> db.student.insertMany([
+...   { name: "Alice", likes: ["Pizza", "Burger", "Pasta"] },
+...   { name: "Bob", likes: ["Pizza", "Sushi"] },
+...   { name: "Charlie", likes: ["Pasta", "Sushi"] },
+...   { name: "David", likes: ["Pizza", "Burger"] }
+... ])
+{
+  acknowledged: true,
+  insertedIds: {
+    '0': ObjectId('672cf13d753e43bcfd117b7b'),
+    '1': ObjectId('672cf13d753e43bcfd117b7c'),
+    '2': ObjectId('672cf13d753e43bcfd117b7d'),
+    '3': ObjectId('672cf13d753e43bcfd117b7e')
+  }
+}
+Assign3> db.student.aggregate([
+...   { $unwind: "$likes" },
+...   {
+...     $group: {
+...       _id: "$likes",  // Group by the liked item
+...       total: { $sum: 1 },  // Count the total number of occurrences
+...       students: { $addToSet: "$name" }  // Collect the names of students who like the item
+...     }
+...   },
+...   { $sort: { total: -1 } },  // Sort by the total count in descending order
+...   { $limit: 1 }  // Limit the result to the top 1 liked item
+... ])
+[ { _id: 'Pizza', total: 3, students: [ 'Alice', 'Bob', 'David' ] } ]
+Assign3> db.student.insertMany([
+...
+Assign3> db.student.insert(
+... {'name': 'shubh', 'likes': ['apple', 'mango', 'pizza', 'cheese']}
+... )
+DeprecationWarning: Collection.insert() is deprecated. Use insertOne, insertMany, or bulkWrite.
+{
+  acknowledged: true,
+  insertedIds: { '0': ObjectId('672cf1c2753e43bcfd117b7f') }
+}
+Assign3> db.student.aggregate([ { $unwind: "$likes" }, { $group: { _id: "$likes", /* Group by the liked item*/ total: { $sum: 1 }, /* Count the total number of occurrences*/ students: { $addToSet: "$name" } /* Collect the names of students who like the item*/ } }, { $sort: { total: -1 } }, /* Sort by the total count in descending order*/ { $limit: 1 } /* Limit the result to the top 1 liked item*/] )
+[ { _id: 'Pizza', total: 3, students: [ 'David', 'Bob', 'Alice' ] } ]
+Assign3> db.student.deleteOne({'name': 'shubh'})
+{ acknowledged: true, deletedCount: 1 }
+Assign3> db.student.insert( { name: 'shubh', likes: ['apple', 'mango', 'pizza', 'cheese'] } )
+{
+  acknowledged: true,
+  insertedIds: { '0': ObjectId('672cf272753e43bcfd117b80') }
+}
+Assign3> db.student.aggregate([ { $unwind: "$likes" }, { $group: { _id: "$likes", /* Group by the liked item*/ total: { $sum: 1 }, /* Count the total number of occurrences*/ students: { $addToSet: "$name" } /* Collect the names of students who like the item*/ } }, { $sort: { total: -1 } }, /* Sort by the total count in descending order*/ { $limit: 1 } /* Limit the result to the top 1 liked item*/] )
+[ { _id: 'Pizza', total: 3, students: [ 'David', 'Bob', 'Alice' ] } ]
+Assign3> db.student.aggregate([ { $unwind: "$likes" }, { $group: { _id: "$likes", /* Group by the liked item*/ total: { $sum: 1 }, /* Count the total number of occurrences*/ students: { $addToSet: "$name" } /* Collect the names of students who like the item*/ } }, { $sort: { total: -1 } } /* Sort by the total count in descending order*/  /* Limit the result to the top 1 liked item*/] )
+[
+  { _id: 'Pizza', total: 3, students: [ 'Alice', 'Bob', 'David' ] },
+  { _id: 'Sushi', total: 2, students: [ 'Bob', 'Charlie' ] },
+  { _id: 'Pasta', total: 2, students: [ 'Alice', 'Charlie' ] },
+  { _id: 'Burger', total: 2, students: [ 'Alice', 'David' ] },
+  { _id: 'pizza', total: 1, students: [ 'shubh' ] },
+  { _id: 'apple', total: 1, students: [ 'shubh' ] },
+  { _id: 'cheese', total: 1, students: [ 'shubh' ] },
+  { _id: 'mango', total: 1, students: [ 'shubh' ] }
+]
+Assign3> db.student.aggregate([
+... {$sort: {'name': 1}}
+... ])
+[
+  {
+    _id: ObjectId('672cf13d753e43bcfd117b7b'),
+    name: 'Alice',
+    likes: [ 'Pizza', 'Burger', 'Pasta' ]
+  },
+  {
+    _id: ObjectId('672cf13d753e43bcfd117b7c'),
+    name: 'Bob',
+    likes: [ 'Pizza', 'Sushi' ]
+  },
+  {
+    _id: ObjectId('672cf13d753e43bcfd117b7d'),
+    name: 'Charlie',
+    likes: [ 'Pasta', 'Sushi' ]
+  },
+  {
+    _id: ObjectId('672cf13d753e43bcfd117b7e'),
+    name: 'David',
+    likes: [ 'Pizza', 'Burger' ]
+  },
+  {
+    _id: ObjectId('672cf272753e43bcfd117b80'),
+    name: 'shubh',
+    likes: [ 'apple', 'mango', 'pizza', 'cheese' ]
+  }
+]
+Assign3> db.student.aggregate([ { $sort: { 'likes': 1 } }] )
+[
+  {
+    _id: ObjectId('672cf13d753e43bcfd117b7b'),
+    name: 'Alice',
+    likes: [ 'Pizza', 'Burger', 'Pasta' ]
+  },
+  {
+    _id: ObjectId('672cf13d753e43bcfd117b7e'),
+    name: 'David',
+    likes: [ 'Pizza', 'Burger' ]
+  },
+  {
+    _id: ObjectId('672cf13d753e43bcfd117b7d'),
+    name: 'Charlie',
+    likes: [ 'Pasta', 'Sushi' ]
+  },
+  {
+    _id: ObjectId('672cf13d753e43bcfd117b7c'),
+    name: 'Bob',
+    likes: [ 'Pizza', 'Sushi' ]
+  },
+  {
+    _id: ObjectId('672cf272753e43bcfd117b80'),
+    name: 'shubh',
+    likes: [ 'apple', 'mango', 'pizza', 'cheese' ]
+  }
+]
+Assign3> db.student.aggregate([ {$addfield: {likesCount: {$size: "$like"}}},{ $sort: { 'likes': 1 } }] )
+MongoServerError[Location40324]: Unrecognized pipeline stage name: '$addfield'
+Assign3> db.student.aggregate([ {$addfields: {likesCount: {$size: "$like"}}},{ $sort: { likesCount: 1 } }] )
+MongoServerError[Location40324]: Unrecognized pipeline stage name: '$addfields'
+Assign3> db.student.aggregate([ {$addFields: {likesCount: {$size: "$like"}}},{ $sort: { likesCount: 1 } }] )
+MongoServerError[Location17124]: PlanExecutor error during aggregation :: caused by :: The argument to $size must be an array, but was of type: missing
+Assign3> db.student.aggregate([ {$addFields: {likesCount: {$size: "$likes"}}},{ $sort: { likesCount: 1 } }] )
+[
+  {
+    _id: ObjectId('672cf13d753e43bcfd117b7c'),
+    name: 'Bob',
+    likes: [ 'Pizza', 'Sushi' ],
+    likesCount: 2
+  },
+  {
+    _id: ObjectId('672cf13d753e43bcfd117b7d'),
+    name: 'Charlie',
+    likes: [ 'Pasta', 'Sushi' ],
+    likesCount: 2
+  },
+  {
+    _id: ObjectId('672cf13d753e43bcfd117b7e'),
+    name: 'David',
+    likes: [ 'Pizza', 'Burger' ],
+    likesCount: 2
+  },
+  {
+    _id: ObjectId('672cf13d753e43bcfd117b7b'),
+    name: 'Alice',
+    likes: [ 'Pizza', 'Burger', 'Pasta' ],
+    likesCount: 3
+  },
+  {
+    _id: ObjectId('672cf272753e43bcfd117b80'),
+    name: 'shubh',
+    likes: [ 'apple', 'mango', 'pizza', 'cheese' ],
+    likesCount: 4
+  }
+]
+Assign3> db.student.aggregate([ {$addFields: {likesCount: {$size: "$likes"}}},{ $sort: { likesCount: 1, 'name': -1 } }] )
+[
+  {
+    _id: ObjectId('672cf13d753e43bcfd117b7e'),
+    name: 'David',
+    likes: [ 'Pizza', 'Burger' ],
+    likesCount: 2
+  },
+  {
+    _id: ObjectId('672cf13d753e43bcfd117b7d'),
+    name: 'Charlie',
+    likes: [ 'Pasta', 'Sushi' ],
+    likesCount: 2
+  },
+  {
+    _id: ObjectId('672cf13d753e43bcfd117b7c'),
+    name: 'Bob',
+    likes: [ 'Pizza', 'Sushi' ],
+    likesCount: 2
+  },
+  {
+    _id: ObjectId('672cf13d753e43bcfd117b7b'),
+    name: 'Alice',
+    likes: [ 'Pizza', 'Burger', 'Pasta' ],
+    likesCount: 3
+  },
+  {
+    _id: ObjectId('672cf272753e43bcfd117b80'),
+    name: 'shubh',
+    likes: [ 'apple', 'mango', 'pizza', 'cheese' ],
+    likesCount: 4
+  }
+]
+Assign3> db.student.aggregate([ {$project: {'name': 1}} ] )
+[
+  { _id: ObjectId('672cf13d753e43bcfd117b7b'), name: 'Alice' },
+  { _id: ObjectId('672cf13d753e43bcfd117b7c'), name: 'Bob' },
+  { _id: ObjectId('672cf13d753e43bcfd117b7d'), name: 'Charlie' },
+  { _id: ObjectId('672cf13d753e43bcfd117b7e'), name: 'David' },
+  { _id: ObjectId('672cf272753e43bcfd117b80'), name: 'shubh' }
+]
+Assign3> db.student.aggregate([ {$project: {name: 1, _id: 0}}])
+[
+  { name: 'Alice' },
+  { name: 'Bob' },
+  { name: 'Charlie' },
+  { name: 'David' },
+  { name: 'shubh' }
+]
+Assign3> db.student.aggregate([ {$project: {name: 1, _id: 0, likes: 1}}])
+[
+  { name: 'Alice', likes: [ 'Pizza', 'Burger', 'Pasta' ] },
+  { name: 'Bob', likes: [ 'Pizza', 'Sushi' ] },
+  { name: 'Charlie', likes: [ 'Pasta', 'Sushi' ] },
+  { name: 'David', likes: [ 'Pizza', 'Burger' ] },
+  { name: 'shubh', likes: [ 'apple', 'mango', 'pizza', 'cheese' ] }
+]
+Assign3> db.student.aggregate([ {$project: {name: 1, _id: 0, likes: { $slice: ["$likes", 2] }}}])
+[
+  { name: 'Alice', likes: [ 'Pizza', 'Burger' ] },
+  { name: 'Bob', likes: [ 'Pizza', 'Sushi' ] },
+  { name: 'Charlie', likes: [ 'Pasta', 'Sushi' ] },
+  { name: 'David', likes: [ 'Pizza', 'Burger' ] },
+  { name: 'shubh', likes: [ 'apple', 'mango' ] }
+]
+Assign3> db.demo.insertMany(
+... db.inventory.insertMany([
+...   { "_id": 1, "item": "abc", "price": 10, "quantity": 2, "date": ISODate("2014-03-01T08:00:00Z") },
+...   { "_id": 2, "item": "jkl", "price": 20, "quantity": 1, "date": ISODate("2014-03-01T09:00:00Z") },
+...   { "_id": 3, "item": "xyz", "price": 5, "quantity": 10, "date": ISODate("2014-03-15T09:00:00Z") },
+...   { "_id": 4, "item": "xyz", "price": 5, "quantity": 20, "date": ISODate("2014-04-04T11:21:39.736Z") },
+...   { "_id": 5, "item": "abc", "price": 10, "quantity": 10, "date": ISODate("2014-04-04T21:23:13.331Z") }
+... ]);
+Uncaught:
+SyntaxError: Unexpected token, expected "," (8:2)
+
+  6 |   { "_id": 4, "item": "xyz", "price": 5, "quantity": 20, "date": ISODate("2014-04-04T11:21:39.736Z") },
+  7 |   { "_id": 5, "item": "abc", "price": 10, "quantity": 10, "date": ISODate("2014-04-04T21:23:13.331Z") }
+> 8 | ]);
+    |   ^
+  9 |
+
+Assign3>
+
+Assign3> db.inventory.insertMany([
+...   { "_id": 1, "item": "abc", "price": 10, "quantity": 2, "date": ISODate("2014-03-01T08:00:00Z") },
+...   { "_id": 2, "item": "jkl", "price": 20, "quantity": 1, "date": ISODate("2014-03-01T09:00:00Z") },
+...   { "_id": 3, "item": "xyz", "price": 5, "quantity": 10, "date": ISODate("2014-03-15T09:00:00Z") },
+...   { "_id": 4, "item": "xyz", "price": 5, "quantity": 20, "date": ISODate("2014-04-04T11:21:39.736Z") },
+...   { "_id": 5, "item": "abc", "price": 10, "quantity": 10, "date": ISODate("2014-04-04T21:23:13.331Z") }
+... ]);
+{
+  acknowledged: true,
+  insertedIds: { '0': 1, '1': 2, '2': 3, '3': 4, '4': 5 }
+}
+Assign3> db.sales.aggregate([
+...   {
+...     $group: {
+...       _id: "$date", // Group by the exact date value
+...       totalPrice: { $sum: { $multiply: ["$price", "$quantity"] } }, // Calculate total price
+...       averageQuantity: { $avg: "$quantity" }, // Calculate average quantity
+...       count: { $sum: 1 } // Count the number of documents in each group
+...     }
+...   }
+... ]);
+
+Assign3> db.inventory.aggregate([ { $group: { _id: "$date", /* Group by the exact date value*/ totalPrice: { $sum: { $multiply: ["$price", "$quantity"] } }, /* Calculate total price*/ averageQuantity: { $avg: "$quantity" }, /* Calculate average quantity*/ count: { $sum: 1 } /* Count the number of documents in each group*/ } }] );
+[
+  {
+    _id: ISODate('2014-03-01T09:00:00.000Z'),
+    totalPrice: 20,
+    averageQuantity: 1,
+    count: 1
+  },
+  {
+    _id: ISODate('2014-03-01T08:00:00.000Z'),
+    totalPrice: 20,
+    averageQuantity: 2,
+    count: 1
+  },
+  {
+    _id: ISODate('2014-04-04T21:23:13.331Z'),
+    totalPrice: 100,
+    averageQuantity: 10,
+    count: 1
+  },
+  {
+    _id: ISODate('2014-04-04T11:21:39.736Z'),
+    totalPrice: 100,
+    averageQuantity: 20,
+    count: 1
+  },
+  {
+    _id: ISODate('2014-03-15T09:00:00.000Z'),
+    totalPrice: 50,
+    averageQuantity: 10,
+    count: 1
+  }
+]
+Assign3> db.sales.aggregate(
+... [
+... {
+... $group:{
+... _id:null,
+... totalPrice:{$sum:{$multiply:[&quot;$price&quot;,&quot;$quantity&quot;]}},
+Uncaught:
+SyntaxError: Unexpected token (6:29)
+
+  4 | $group:{
+  5 | _id:null,
+> 6 | totalPrice:{$sum:{$multiply:[&quot;$price&quot;,&quot;$quantity&quot;]}},
+    |                              ^
+  7 |
+
+Assign3> averageQuantity:{$avg:&quot;$quantity&quot;},
+Uncaught:
+SyntaxError: Unexpected token (1:22)
+
+> 1 | averageQuantity:{$avg:&quot;$quantity&quot;},
+    |                       ^
+  2 |
+
+Assign3> count:{$sum:1}
+1
+Assign3> }
+Uncaught:
+SyntaxError: Unexpected token (1:0)
+
+> 1 | }
+    | ^
+  2 |
+
+Assign3> }
+Uncaught:
+SyntaxError: Unexpected token (1:0)
+
+> 1 | }
+    | ^
+  2 |
+
+Assign3> ]
+Uncaught:
+SyntaxError: Unexpected token (1:0)
+
+> 1 | ]
+    | ^
+  2 |
+
+Assign3> )db.sales.aggregate([
+Uncaught:
+SyntaxError: Unexpected token (1:0)
+
+> 1 | )db.sales.aggregate([
+    | ^
+  2 |
+
+Assign3>   {
+...     $group: {
+...       _id: null, // Group all documents together
+...       totalPrice: { $sum: { $multiply: ["$price", "$quantity"] } }, // Sum of price * quantity
+...       averageQuantity: { $avg: "$quantity" }, // Average of quantity field
+...       count: { $sum: 1 } // Count of documents
+...     }
+...   }
+... ])
+Uncaught:
+SyntaxError: Missing semicolon. (4:16)
+
+  2 |     $group: {
+  3 |       _id: null, // Group all documents together
+> 4 |       totalPrice: { $sum: { $multiply: ["$price", "$quantity"] } }, // Sum of price * quantity
+    |                 ^
+  5 |       averageQuantity: { $avg: "$quantity" }, // Average of quantity field
+  6 |       count: { $sum: 1 } // Count of documents
+  7 |     }
+
+Assign3> db.sales.aggregate([
+...   {
+...     $group: {
+...       _id: null, // Group all documents together
+...       totalPrice: { $sum: { $multiply: ["$price", "$quantity"] } }, // Sum of price * quantity
+...       averageQuantity: { $avg: "$quantity" }, // Average of quantity field
+...       count: { $sum: 1 } // Count of documents
+...     }
+...   }
+... ])
+
+Assign3> db.inventory.aggregate([ { $group: { _id: null, /* Group all documents together*/ totalPrice: { $sum: { $multiply: ["$price", "$quantity"] } }, /* Sum of price * quantity*/ averageQuantity: { $avg: "$quantity" }, /* Average of quantity field*/ count: { $sum: 1 } /* Count of documents*/ } }] )
+[ { _id: null, totalPrice: 290, averageQuantity: 8.6, count: 5 } ]
+Assign3> db.inventory.aggregate(
+... {$group: {
+... _id: '$item'}
+... })
+[ { _id: 'abc' }, { _id: 'jkl' }, { _id: 'xyz' } ]
+Assign3> show collections
+inventory
+student
+Assign3> db.students.find()
+
+Assign3> db.student.find()
+[
+  {
+    _id: ObjectId('672cf13d753e43bcfd117b7b'),
+    name: 'Alice',
+    likes: [ 'Pizza', 'Burger', 'Pasta' ]
+  },
+  {
+    _id: ObjectId('672cf13d753e43bcfd117b7c'),
+    name: 'Bob',
+    likes: [ 'Pizza', 'Sushi' ]
+  },
+  {
+    _id: ObjectId('672cf13d753e43bcfd117b7d'),
+    name: 'Charlie',
+    likes: [ 'Pasta', 'Sushi' ]
+  },
+  {
+    _id: ObjectId('672cf13d753e43bcfd117b7e'),
+    name: 'David',
+    likes: [ 'Pizza', 'Burger' ]
+  },
+  {
+    _id: ObjectId('672cf272753e43bcfd117b80'),
+    name: 'shubh',
+    likes: [ 'apple', 'mango', 'pizza', 'cheese' ]
+  }
+]
+Assign3> db.student.aggregate(
+... {$unwind: '$likes'}
+... )
+[
+  {
+    _id: ObjectId('672cf13d753e43bcfd117b7b'),
+    name: 'Alice',
+    likes: 'Pizza'
+  },
+  {
+    _id: ObjectId('672cf13d753e43bcfd117b7b'),
+    name: 'Alice',
+    likes: 'Burger'
+  },
+  {
+    _id: ObjectId('672cf13d753e43bcfd117b7b'),
+    name: 'Alice',
+    likes: 'Pasta'
+  },
+  {
+    _id: ObjectId('672cf13d753e43bcfd117b7c'),
+    name: 'Bob',
+    likes: 'Pizza'
+  },
+  {
+    _id: ObjectId('672cf13d753e43bcfd117b7c'),
+    name: 'Bob',
+    likes: 'Sushi'
+  },
+  {
+    _id: ObjectId('672cf13d753e43bcfd117b7d'),
+    name: 'Charlie',
+    likes: 'Pasta'
+  },
+  {
+    _id: ObjectId('672cf13d753e43bcfd117b7d'),
+    name: 'Charlie',
+    likes: 'Sushi'
+  },
+  {
+    _id: ObjectId('672cf13d753e43bcfd117b7e'),
+    name: 'David',
+    likes: 'Pizza'
+  },
+  {
+    _id: ObjectId('672cf13d753e43bcfd117b7e'),
+    name: 'David',
+    likes: 'Burger'
+  },
+  {
+    _id: ObjectId('672cf272753e43bcfd117b80'),
+    name: 'shubh',
+    likes: 'apple'
+  },
+  {
+    _id: ObjectId('672cf272753e43bcfd117b80'),
+    name: 'shubh',
+    likes: 'mango'
+  },
+  {
+    _id: ObjectId('672cf272753e43bcfd117b80'),
+    name: 'shubh',
+    likes: 'pizza'
+  },
+  {
+    _id: ObjectId('672cf272753e43bcfd117b80'),
+    name: 'shubh',
+    likes: 'cheese'
+  }
+]
+Assign3> show collections
+inventory
+student
+Assign3>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

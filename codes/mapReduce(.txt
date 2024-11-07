@@ -1,0 +1,38 @@
+db.students.mapReduce(
+    function() {
+        emit(this.student_id, this.grade); 
+    },
+    function(key, values) {
+        return Array.sum(values) / values.length; 
+    },
+    {
+        out: "average_grades"  
+  }
+)
+
+
+
+
+output of mapper function
+[
+  { "key": "101", "value": 85 },
+  { "key": "101", "value": 78 },
+  { "key": "101", "value": 90 },
+  { "key": "102", "value": 92 },
+  { "key": "102", "value": 85 },
+  { "key": "102", "value": 88 }
+]
+
+
+input of reducer
+{
+  "101": [85, 78, 90],
+  "102": [92, 85, 88]
+}
+
+
+output of reducer
+[
+  { "_id": "101", "value": 84.33 },
+  { "_id": "102", "value": 88.33 }
+]
